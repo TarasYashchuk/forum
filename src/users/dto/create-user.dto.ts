@@ -11,6 +11,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 
+  @IsString()
+  @IsNotEmpty()
+  repeatPassword: string;
+
   @IsOptional()
   @IsString()
   firstName?: string;

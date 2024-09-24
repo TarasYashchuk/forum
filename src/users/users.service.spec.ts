@@ -53,7 +53,7 @@ describe('UserController', () => {
           password: hashedPassword,
           createdAt: new Date(),
           updatedAt: new Date(),
-        } as User);
+        } as unknown as User);
       }),
     };
 
@@ -80,6 +80,7 @@ describe('UserController', () => {
           email: 'test@example.com',
           username: 'testuser',
           password: 'password123',
+          repeatPassword: 'password123',
         };
 
         const result = await controller.register(createUserDto);

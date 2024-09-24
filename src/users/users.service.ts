@@ -1,27 +1,77 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { Prisma, User } from '@prisma/client';
 import { UserDto } from './dto/user-responce.dto';
 import { plainToClass, plainToInstance } from 'class-transformer';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UserSearchDto } from './dto/user-search.dto';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createUser(data: Prisma.UserCreateInput): Promise<User> {
+  async createUser(data: CreateUserDto): Promise<User> {
+    if (data.password !== data.repeatPassword) {
+      throw new Error('Passwords do not match');
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
+
+    const userRole = await this.prisma.role.findUnique({
+      where: { name: 'user' },
+    });
+
+    if (!userRole) {
+      throw new Error('Role "admin" not found');
+    }
+
     return this.prisma.user.create({
-      data: { ...data, password: hashedPassword },
+      data: {
+        email: data.email,
+        username: data.username,
+        password: hashedPassword,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        avatarUrl: data.avatarUrl,
+        bio: data.bio,
+        role: {
+          connect: { id: userRole.id },
+        },
+      },
     });
   }
 
-  async getUserByEmail(email: string): Promise<User> {
+  async getUserByEmail(email: string): Promise<UserDto> {
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
+    }
+    return plainToClass(UserDto, user, { excludeExtraneousValues: true });
+  }
+
+  async findByUsername(username: string): Promise<UserDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+    });
+    if (!user) {
+      throw new NotFoundException(`User with username ${username} not found`);
+    }
+    return plainToClass(UserDto, user, { excludeExtraneousValues: true });
+  }
+
+  async getByUsername(username: string): Promise<any> {
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+    });
+    if (!user) {
+      throw new NotFoundException(`User with username ${username} not found`);
     }
     return user;
   }
@@ -47,41 +97,63 @@ export class UserService {
     return plainToClass(UserDto, user);
   }
 
-  async validateUserPassword(email: string, password: string): Promise<User> {
+  // TODO
+
+  /* async validateUserPassword(email: string, password: string): Promise<User> {
     const user = await this.getUserByEmail(email);
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       throw new Error('Invalid credentials');
     }
     return user;
-  }
+  } */
 
   async getAllUsers(): Promise<UserDto[]> {
     const users = await this.prisma.user.findMany();
     return plainToInstance(UserDto, users, { excludeExtraneousValues: true });
   }
 
-  async searchUsers(query: string): Promise<User[]> {
-    return this.prisma.user.findMany({
+  async changeUserPassword(id: number, newPassword: string): Promise<User> {
+    if (newPassword.length < 6) {
+      throw new BadRequestException(
+        'Password must be at least 6 characters long',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    console.log(`Changing password for user ID: ${id}`);
+
+    const userId = parseInt(id.toString(), 10);
+
+    const user = await this.prisma.user.findUnique({
       where: {
-        OR: [
-          { firstName: { contains: query, mode: 'insensitive' } },
-          { lastName: { contains: query, mode: 'insensitive' } },
-          { email: { contains: query, mode: 'insensitive' } },
-        ],
+        id: userId,
       },
     });
-  }
 
-  async changeUserPassword(id: number, newPassword: string): Promise<User> {
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
     return this.prisma.user.update({
-      where: { id },
+      where: { id: userId },
       data: { password: hashedPassword },
     });
   }
 
-  async updateUserProfile(
+  async updateUserPassword(
+    userId: number,
+    hashedPassword: string,
+  ): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+  }
+
+  // TODO
+
+  /* async updateUserProfile(
     id: number,
     profileData: { avatarUrl?: string; bio?: string },
   ): Promise<User> {
@@ -89,15 +161,23 @@ export class UserService {
       where: { id },
       data: profileData,
     });
-  }
+  } */
 
   async getUserById(id: number): Promise<UserDto> {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
-    });
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+    if (!id) {
+      throw new Error('User ID must be provided');
     }
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     return plainToClass(UserDto, user, { excludeExtraneousValues: true });
   }
 }

@@ -1,6 +1,7 @@
 import { Exclude, Expose } from 'class-transformer';
 
-export class UserDto {
+@Exclude()
+export class UserSearchDto {
   @Expose()
   id: number;
 
@@ -9,9 +10,6 @@ export class UserDto {
 
   @Expose()
   username: string;
-
-  @Exclude()
-  password?: string;
 
   @Expose()
   firstName?: string;
@@ -24,13 +22,4 @@ export class UserDto {
 
   @Expose()
   bio?: string;
-
-  @Expose()
-  createdAt: Date;
-
-  @Expose()
-  updatedAt: Date;
-
-  @Expose()
-  roleId: number;
 }
