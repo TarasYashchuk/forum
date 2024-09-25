@@ -6,16 +6,26 @@ import { JwtStrategy } from './jwt.strategy';
 import config from '../config/jwt.config';
 import { UserService } from 'src/users/users.service';
 import { PrismaModule } from '../prisma.module';
+import { PrismaService } from 'src/prisma.service';
+import { PasswordResetService } from './password-reset.service';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
+    MailModule,
     PrismaModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: config.jwtExpiresIn },
     }),
   ],
-  providers: [AuthService, JwtStrategy, UserService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    UserService,
+    PrismaService,
+    PasswordResetService,
+  ],
   controllers: [AuthController],
 })
 export class AuthModule {}

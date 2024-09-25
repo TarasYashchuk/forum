@@ -10,6 +10,7 @@ import { UserDto } from './dto/user-responce.dto';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserSearchDto } from './dto/user-search.dto';
+import { nanoid } from 'nanoid';
 
 @Injectable()
 export class UserService {
@@ -97,58 +98,19 @@ export class UserService {
     return plainToClass(UserDto, user);
   }
 
-  // TODO
-
-  /* async validateUserPassword(email: string, password: string): Promise<User> {
-    const user = await this.getUserByEmail(email);
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw new Error('Invalid credentials');
-    }
-    return user;
-  } */
-
   async getAllUsers(): Promise<UserDto[]> {
     const users = await this.prisma.user.findMany();
     return plainToInstance(UserDto, users, { excludeExtraneousValues: true });
   }
 
-  async changeUserPassword(id: number, newPassword: string): Promise<User> {
-    if (newPassword.length < 6) {
-      throw new BadRequestException(
-        'Password must be at least 6 characters long',
-      );
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    console.log(`Changing password for user ID: ${id}`);
-
-    const userId = parseInt(id.toString(), 10);
-
+  async forgotPassword(email: string) {
     const user = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
+      where: { email },
     });
 
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
-    }
+    const resetToken = nanoid(64);
 
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    });
-  }
-
-  async updateUserPassword(
-    userId: number,
-    hashedPassword: string,
-  ): Promise<void> {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    });
+    return { message: 'If this user exists, he will receive the email' };
   }
 
   // TODO

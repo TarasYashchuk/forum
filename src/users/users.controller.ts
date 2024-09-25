@@ -25,8 +25,8 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { UserIdDto } from './dto/user-id.dto';
 import { UserSearchDto } from './dto/user-search.dto';
 import { plainToClass } from 'class-transformer';
-import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcryptjs';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @Controller('users')
 export class UserController {
@@ -67,26 +67,20 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1)
   @Put(':id')
+  @UsePipes(new ValidationPipe({ transform: true }))
   async updateUser(
-    @Param('id') id: string,
+    @Param() params: UserIdDto,
     @Body() UserDto: Prisma.UserUpdateInput,
   ): Promise<UserDto> {
-    const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
-      throw new BadRequestException('Invalid user ID');
-    }
-    return this.userService.updateUser(userId, UserDto);
+    return this.userService.updateUser(params.id, UserDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1)
   @Delete(':id')
-  async deleteUser(@Param('id') id: string): Promise<UserDto> {
-    const userId = parseInt(id, 10);
-    if (isNaN(userId)) {
-      throw new NotFoundException('Invalid user ID');
-    }
-    return this.userService.deleteUser(userId);
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async deleteUser(@Param() params: UserIdDto): Promise<UserDto> {
+    return this.userService.deleteUser(params.id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -105,49 +99,8 @@ export class UserController {
     return user;
   }
 
-  // TODO
-
-  /* @UseGuards(JwtAuthGuard)
-  @Put('change-password')
-  @Roles(2)
-  async changePassword(req: any, @Body('newPassword') newPassword: string) {
-    const username = req.user.username;
-    return this.userService.changeUserPassword(username, newPassword);
-  } */
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(1)
-  @Patch('password')
-  async changePasswordByAdmin(
-    @Body() body: { id: number; newPassword: string },
-  ): Promise<UserDto> {
-    const { id, newPassword } = body;
-
-    const user = await this.userService.changeUserPassword(id, newPassword);
-    return plainToClass(UserDto, user, { excludeExtraneousValues: true });
+  @Post('forgot-password')
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.userService.forgotPassword(forgotPasswordDto.email);
   }
-
-  // fix
-
-  /* @UseGuards(JwtAuthGuard)
-  @Patch('change-password')
-  @Roles(1)
-  async changePassword(
-    @Req()
-    @Body()
-    changePasswordDto: ChangePasswordDto,
-  ): Promise<void> {
-    const user = await this.userService.getUserById(Req.arguments.user.id);
-
-    const isOldPasswordValid = await bcrypt.compare(
-      changePasswordDto.oldPassword,
-      user.password,
-    );
-    if (!isOldPasswordValid) {
-      throw new BadRequestException('Incorrect old password');
-    }
-
-    const hashedPassword = await bcrypt.hash(changePasswordDto.newPassword, 10);
-    await this.userService.updateUserPassword(user.id, hashedPassword);
-  }*/
 }

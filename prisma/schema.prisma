@@ -34,6 +34,7 @@ model User {
   commentLikes CommentLike[] @relation("UserCommentLikes")
   followedBy   Follower[]    @relation("UserFollowers")
   following    Follower[]    @relation("UserFollowing")
+  resetTokens PasswordResetToken[]
 
   @@map("users")
 }
@@ -107,4 +108,15 @@ model Follower {
 
   @@unique([followerId, followingId])
   @@map("followers")
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@map("password_reset_tokens")
 }

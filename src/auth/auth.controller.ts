@@ -1,10 +1,28 @@
-import { Body, Controller, Post, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Patch,
+  Post,
+  Query,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { PasswordResetService } from './password-reset.service';
+import { Roles } from './roles.decorator';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { RolesGuard } from './roles.guard';
+import { MailService } from './mail/mail.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private mailService: MailService,
+    private passwordResetService: PasswordResetService,
+  ) {}
 
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
@@ -18,5 +36,38 @@ export class AuthController {
     }
 
     return this.authService.login(user);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(2)
+  @Post('request-password-reset')
+  async requestPasswordReset(
+    @Body('email') email: string,
+  ): Promise<{ message: string }> {
+    const user = await this.authService.findUserByEmail(email);
+    if (!user) {
+      throw new BadRequestException('User with this email does not exist');
+    }
+
+    const token = await this.passwordResetService.createPasswordResetToken(
+      user.id,
+    );
+    await this.mailService.sendPasswordResetEmail(user.email, token);
+
+    return { message: 'Password reset email sent' };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(2)
+  @Patch('reset-password')
+  async resetPassword(
+    @Query('token') token: string,
+    @Body('newPassword') newPassword: string,
+  ): Promise<{ message: string }> {
+    const userId =
+      await this.passwordResetService.validatePasswordResetToken(token);
+    await this.passwordResetService.resetPassword(userId, newPassword);
+
+    return { message: 'Password successfully reset' };
   }
 }
