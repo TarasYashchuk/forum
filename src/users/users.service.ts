@@ -103,16 +103,6 @@ export class UserService {
     return plainToInstance(UserDto, users, { excludeExtraneousValues: true });
   }
 
-  async forgotPassword(email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    const resetToken = nanoid(64);
-
-    return { message: 'If this user exists, he will receive the email' };
-  }
-
   // TODO
 
   /* async updateUserProfile(

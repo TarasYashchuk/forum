@@ -18,11 +18,9 @@ export class RolesGuard extends JwtAuthGuard {
       'roles',
       context.getHandler(),
     );
-    console.log('Required roles:', requiredRoles);
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-    console.log('User roleId:', user?.roleId);
 
     if (!user || !requiredRoles.includes(user.roleId)) {
       throw new UnauthorizedException('Access denied');

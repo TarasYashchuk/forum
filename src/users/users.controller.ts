@@ -98,9 +98,4 @@ export class UserController {
     }
     return user;
   }
-
-  @Post('forgot-password')
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
-    return this.userService.forgotPassword(forgotPasswordDto.email);
-  }
 }
