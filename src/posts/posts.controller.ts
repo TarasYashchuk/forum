@@ -42,4 +42,19 @@ export class PostController {
   async getPostById(@Param('id', ParseIntPipe) id: number): Promise<PostDto> {
     return this.postService.getPostById(id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async updatePost(
+    @Param('id') postId: string,
+    @Body() updatePostDto: UpdatePostDto,
+    @Req() req: Request,
+  ): Promise<PostDto> {
+    const user = (req as any).user as {
+      id: number;
+      username: string;
+      roleId: number;
+    };
+    return this.postService.updatePost(Number(postId), user.id, updatePostDto);
+  }
 }

@@ -1,9 +1,13 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { PostDto } from './dto/post.dto';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { plainToInstance } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 
 @Injectable()
 export class PostService {
@@ -32,5 +36,32 @@ export class PostService {
     }
 
     return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
+  }
+
+  async updatePost(
+    postId: number,
+    userId: number,
+    updatePostDto: UpdatePostDto,
+  ): Promise<PostDto> {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException(`Post with ID ${postId} not found`);
+    }
+
+    if (post.authorId !== userId) {
+      throw new ForbiddenException('You are not allowed to edit this post');
+    }
+
+    const updatedPost = await this.prisma.post.update({
+      where: { id: postId },
+      data: { ...updatePostDto },
+    });
+
+    return plainToClass(PostDto, updatedPost, {
+      excludeExtraneousValues: true,
+    });
   }
 }
