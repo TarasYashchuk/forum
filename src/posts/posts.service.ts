@@ -86,4 +86,14 @@ export class PostService {
       where: { id: postId },
     });
   }
+
+  async getAllPosts(): Promise<PostDto[]> {
+    const posts = await this.prisma.post.findMany({
+      include: {
+        author: true,
+      },
+    });
+
+    return plainToInstance(PostDto, posts, { excludeExtraneousValues: true });
+  }
 }

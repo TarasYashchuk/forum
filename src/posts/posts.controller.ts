@@ -68,4 +68,10 @@ export class PostController {
     await this.postService.deletePost(Number(postId), user.id, user.roleId);
     return { message: 'Post successfully deleted' };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  async getAllPosts(): Promise<PostDto[]> {
+    return this.postService.getAllPosts();
+  }
 }
