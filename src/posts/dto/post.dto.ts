@@ -1,4 +1,5 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { LikeDto } from './like.dto';
 
 export class PostDto {
   @Expose()
@@ -21,4 +22,8 @@ export class PostDto {
 
   @Expose()
   authorId: number;
+
+  @Expose()
+  @Type(() => LikeDto)
+  likes: LikeDto[];
 }

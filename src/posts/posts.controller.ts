@@ -86,4 +86,20 @@ export class PostController {
       plainToInstance(PostDto, post, { excludeExtraneousValues: true }),
     );
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':postId/like')
+  async likePost(
+    @Param('postId') postId: string,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    const user = (req as any).user as {
+      id: number;
+      username: string;
+      roleId: number;
+    };
+    const userId = user.id;
+    await this.postService.likePost(Number(postId), userId);
+    return { message: 'Post liked successfully' };
+  }
 }

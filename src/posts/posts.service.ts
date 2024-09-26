@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -26,16 +27,22 @@ export class PostService {
     return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
   }
 
-  async getPostById(postId: number): Promise<PostDto> {
+  async getPostById(id: number): Promise<PostDto> {
     const post = await this.prisma.post.findUnique({
-      where: { id: postId },
+      where: { id },
+      include: {
+        likes: {
+          select: {
+            userId: true,
+          },
+        },
+      },
     });
 
     if (!post) {
-      throw new NotFoundException(`Post with ID ${postId} not found`);
+      throw new NotFoundException(`Post with ID ${id} not found`);
     }
-
-    return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
+    return plainToInstance(PostDto, post);
   }
 
   async updatePost(
@@ -91,6 +98,7 @@ export class PostService {
     const posts = await this.prisma.post.findMany({
       include: {
         author: true,
+        likes: { select: { userId: true } },
       },
     });
 
@@ -102,6 +110,7 @@ export class PostService {
       where: { authorId },
       include: {
         author: true,
+        likes: { select: { userId: true } },
       },
     });
 
@@ -111,6 +120,25 @@ export class PostService {
       );
     }
 
-    return posts;
+    return plainToInstance(PostDto, posts, { excludeExtraneousValues: true });
+  }
+
+  async likePost(postId: number, userId: number): Promise<void> {
+    const existingLike = await this.prisma.postLike.findUnique({
+      where: {
+        userId_postId: { userId, postId },
+      },
+    });
+
+    if (existingLike) {
+      throw new BadRequestException('User has already liked this post');
+    }
+
+    await this.prisma.postLike.create({
+      data: {
+        userId,
+        postId,
+      },
+    });
   }
 }
