@@ -1,5 +1,6 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { LikeDto } from './like.dto';
+import { LikeDto } from '../like/like.dto';
+import { CommentDto } from 'src/comments/dto/comment.dto';
 
 export class PostDto {
   @Expose()
@@ -26,4 +27,8 @@ export class PostDto {
   @Expose()
   @Type(() => LikeDto)
   likes: LikeDto[];
+
+  @Expose()
+  @Type(() => CommentDto)
+  comments: CommentDto[];
 }

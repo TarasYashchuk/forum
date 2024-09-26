@@ -1,5 +1,5 @@
 import { Exclude, Expose, Type } from 'class-transformer';
-import { PostDto } from 'src/posts/dto/post.dto';
+import { PostDto } from 'src/posts/dto/post/post.dto';
 
 export class UserDto {
   @Expose()

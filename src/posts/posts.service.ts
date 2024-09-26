@@ -5,9 +5,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
-import { PostDto } from './dto/post.dto';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { PostDto } from './dto/post/post.dto';
+import { CreatePostDto } from './dto/post/create-post.dto';
+import { UpdatePostDto } from './dto/post/update-post.dto';
 import { plainToClass, plainToInstance } from 'class-transformer';
 
 @Injectable()
@@ -36,13 +36,19 @@ export class PostService {
             userId: true,
           },
         },
+        comments: {
+          include: {
+            user: { select: { id: true, username: true } },
+          },
+        },
       },
     });
 
     if (!post) {
       throw new NotFoundException(`Post with ID ${id} not found`);
     }
-    return plainToInstance(PostDto, post);
+
+    return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
   }
 
   async updatePost(
@@ -99,6 +105,11 @@ export class PostService {
       include: {
         author: true,
         likes: { select: { userId: true } },
+        comments: {
+          include: {
+            user: { select: { id: true, username: true } },
+          },
+        },
       },
     });
 
@@ -111,6 +122,11 @@ export class PostService {
       include: {
         author: true,
         likes: { select: { userId: true } },
+        comments: {
+          include: {
+            user: { select: { id: true, username: true } },
+          },
+        },
       },
     });
 

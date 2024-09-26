@@ -10,9 +10,9 @@ import {
   Req,
   ParseIntPipe,
 } from '@nestjs/common';
-import { PostDto } from './dto/post.dto';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { PostDto } from './dto/post/post.dto';
+import { CreatePostDto } from './dto/post/create-post.dto';
+import { UpdatePostDto } from './dto/post/update-post.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Request } from 'express';
 import { PostService } from './posts.service';
