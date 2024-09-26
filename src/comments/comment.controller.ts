@@ -12,12 +12,15 @@ import {
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/auth/roles.guard';
 
 @Controller('comments')
 export class CommentController {
   constructor(private commentService: CommentService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Post(':postId')
   async createComment(
     @Param('postId', ParseIntPipe) postId: number,
@@ -32,7 +35,8 @@ export class CommentController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Delete(':commentId')
   async deleteComment(
     @Param('commentId', ParseIntPipe) commentId: number,
@@ -43,12 +47,15 @@ export class CommentController {
     return { message: 'Comment successfully deleted' };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Get(':postId')
   async getCommentsByPost(@Param('postId', ParseIntPipe) postId: number) {
     return this.commentService.getCommentsByPost(postId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Post(':commentId/like')
   async likeComment(
     @Param('commentId', ParseIntPipe) commentId: number,
@@ -59,7 +66,8 @@ export class CommentController {
     return { message: 'Comment liked' };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Delete(':commentId/unlike')
   async unlikeComment(
     @Param('commentId', ParseIntPipe) commentId: number,

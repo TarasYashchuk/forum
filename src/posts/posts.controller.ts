@@ -17,13 +17,16 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Request } from 'express';
 import { PostService } from './posts.service';
 import { plainToInstance } from 'class-transformer';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
 
 @Controller('posts')
 export class PostController {
   constructor(private postService: PostService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('create-post')
+  @Roles(2, 1)
   async createPost(
     @Body() createPostDto: CreatePostDto,
     @Req() req: Request,
@@ -38,13 +41,15 @@ export class PostController {
     return this.postService.createPost(createPostDto, userId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1)
   @Get(':id')
   async getPostById(@Param('id', ParseIntPipe) id: number): Promise<PostDto> {
     return this.postService.getPostById(id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Patch(':id')
   async updatePost(
     @Param('id') postId: string,
@@ -59,7 +64,8 @@ export class PostController {
     return this.postService.updatePost(Number(postId), user.id, updatePostDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Delete(':id')
   async deletePost(
     @Param('id') postId: string,
@@ -70,7 +76,8 @@ export class PostController {
     return { message: 'Post successfully deleted' };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Get()
   async getAllPosts(): Promise<PostDto[]> {
     return this.postService.getAllPosts();
@@ -87,7 +94,8 @@ export class PostController {
     );
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Post(':postId/like')
   async likePost(
     @Param('postId') postId: string,
@@ -103,7 +111,8 @@ export class PostController {
     return { message: 'Post liked successfully' };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Delete(':postId/unlike')
   async unlikePost(
     @Param('postId', ParseIntPipe) postId: number,
