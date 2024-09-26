@@ -57,4 +57,15 @@ export class PostController {
     };
     return this.postService.updatePost(Number(postId), user.id, updatePostDto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deletePost(
+    @Param('id') postId: string,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    const user = (req as any).user as { id: number; roleId: number };
+    await this.postService.deletePost(Number(postId), user.id, user.roleId);
+    return { message: 'Post successfully deleted' };
+  }
 }

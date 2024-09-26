@@ -64,4 +64,26 @@ export class PostService {
       excludeExtraneousValues: true,
     });
   }
+
+  async deletePost(
+    postId: number,
+    userId: number,
+    roleId: number,
+  ): Promise<void> {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException(`Post with ID ${postId} not found`);
+    }
+
+    if (post.authorId !== userId && roleId !== 1) {
+      throw new ForbiddenException('You are not allowed to delete this post');
+    }
+
+    await this.prisma.post.delete({
+      where: { id: postId },
+    });
+  }
 }
