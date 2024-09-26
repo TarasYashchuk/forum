@@ -11,4 +11,9 @@ export class CommentDto {
   @Type(() => UserDto)
   @Expose()
   user: UserDto;
+
+  @Expose()
+  likes: {
+    userId: number;
+  }[];
 }

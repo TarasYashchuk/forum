@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -44,6 +45,37 @@ export class CommentService {
 
     await this.prisma.comment.delete({
       where: { id: commentId },
+    });
+  }
+
+  async getCommentsByPost(postId: number) {
+    return this.prisma.comment.findMany({
+      where: { postId },
+      include: {
+        user: { select: { id: true, username: true } },
+        likes: { select: { userId: true } },
+      },
+    });
+  }
+
+  async likeComment(commentId: number, userId: number): Promise<void> {
+    const existingLike = await this.prisma.commentLike.findUnique({
+      where: {
+        userId_commentId: {
+          userId,
+          commentId,
+        },
+      },
+    });
+
+    if (existingLike) {
+      throw new BadRequestException('You have already liked this comment');
+    }
+    await this.prisma.commentLike.create({
+      data: {
+        commentId,
+        userId,
+      },
     });
   }
 }

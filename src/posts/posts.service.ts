@@ -39,6 +39,7 @@ export class PostService {
         comments: {
           include: {
             user: { select: { id: true, username: true } },
+            likes: { select: { userId: true } },
           },
         },
       },
@@ -108,6 +109,7 @@ export class PostService {
         comments: {
           include: {
             user: { select: { id: true, username: true } },
+            likes: { select: { userId: true } },
           },
         },
       },
@@ -125,6 +127,7 @@ export class PostService {
         comments: {
           include: {
             user: { select: { id: true, username: true } },
+            likes: { select: { userId: true } },
           },
         },
       },

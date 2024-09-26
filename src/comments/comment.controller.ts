@@ -42,4 +42,20 @@ export class CommentController {
     await this.commentService.deleteComment(commentId, user.id);
     return { message: 'Comment successfully deleted' };
   }
+
+  @Get(':postId')
+  async getCommentsByPost(@Param('postId', ParseIntPipe) postId: number) {
+    return this.commentService.getCommentsByPost(postId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':commentId/like')
+  async likeComment(
+    @Param('commentId', ParseIntPipe) commentId: number,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    const user = (req as any).user as { id: number };
+    await this.commentService.likeComment(commentId, user.id);
+    return { message: 'Comment liked' };
+  }
 }
