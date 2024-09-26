@@ -21,4 +21,16 @@ export class PostService {
     });
     return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
   }
+
+  async getPostById(postId: number): Promise<PostDto> {
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!post) {
+      throw new NotFoundException(`Post with ID ${postId} not found`);
+    }
+
+    return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
+  }
 }

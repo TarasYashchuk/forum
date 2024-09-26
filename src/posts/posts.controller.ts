@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
   Req,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PostDto } from './dto/post.dto';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -34,5 +35,11 @@ export class PostController {
     const userId = user.id;
 
     return this.postService.createPost(createPostDto, userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async getPostById(@Param('id', ParseIntPipe) id: number): Promise<PostDto> {
+    return this.postService.getPostById(id);
   }
 }
