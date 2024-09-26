@@ -102,4 +102,23 @@ export class CommentService {
       },
     });
   }
+
+  async updateComment(commentId: number, userId: number, content: string) {
+    const comment = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new NotFoundException('Comment not found');
+    }
+
+    if (comment.userId !== userId) {
+      throw new ForbiddenException('You can only edit your own comments');
+    }
+
+    return this.prisma.comment.update({
+      where: { id: commentId },
+      data: { content },
+    });
+  }
 }

@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -76,5 +77,21 @@ export class CommentController {
     const user = (req as any).user as { id: number };
     await this.commentService.unlikeComment(commentId, user.id);
     return { message: 'Comment unliked' };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
+  @Patch(':commentId')
+  async updateComment(
+    @Param('commentId', ParseIntPipe) commentId: number,
+    @Body() updateCommentDto: CreateCommentDto,
+    @Req() req: Request,
+  ) {
+    const user = (req as any).user as { id: number };
+    return this.commentService.updateComment(
+      commentId,
+      user.id,
+      updateCommentDto.content,
+    );
   }
 }
