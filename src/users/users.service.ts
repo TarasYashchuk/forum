@@ -99,7 +99,12 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<UserDto[]> {
-    const users = await this.prisma.user.findMany();
+    const users = await this.prisma.user.findMany({
+      include: {
+        posts: true,
+      },
+    });
+
     return plainToInstance(UserDto, users, { excludeExtraneousValues: true });
   }
 

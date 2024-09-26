@@ -1,4 +1,5 @@
-import { Exclude, Expose } from 'class-transformer';
+import { Exclude, Expose, Type } from 'class-transformer';
+import { PostDto } from 'src/posts/dto/post.dto';
 
 export class UserDto {
   @Expose()
@@ -33,4 +34,8 @@ export class UserDto {
 
   @Expose()
   roleId: number;
+
+  @Expose()
+  @Type(() => PostDto)
+  posts?: PostDto[];
 }
