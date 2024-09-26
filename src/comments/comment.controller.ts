@@ -58,4 +58,15 @@ export class CommentController {
     await this.commentService.likeComment(commentId, user.id);
     return { message: 'Comment liked' };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':commentId/unlike')
+  async unlikeComment(
+    @Param('commentId', ParseIntPipe) commentId: number,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    const user = (req as any).user as { id: number };
+    await this.commentService.unlikeComment(commentId, user.id);
+    return { message: 'Comment unliked' };
+  }
 }

@@ -78,4 +78,28 @@ export class CommentService {
       },
     });
   }
+
+  async unlikeComment(commentId: number, userId: number): Promise<void> {
+    const existingLike = await this.prisma.commentLike.findUnique({
+      where: {
+        userId_commentId: {
+          userId,
+          commentId,
+        },
+      },
+    });
+
+    if (!existingLike) {
+      throw new BadRequestException('You have not liked this comment yet');
+    }
+
+    await this.prisma.commentLike.delete({
+      where: {
+        userId_commentId: {
+          userId,
+          commentId,
+        },
+      },
+    });
+  }
 }
