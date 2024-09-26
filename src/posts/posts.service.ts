@@ -96,4 +96,21 @@ export class PostService {
 
     return plainToInstance(PostDto, posts, { excludeExtraneousValues: true });
   }
+
+  async getPostsByAuthor(authorId: number): Promise<PostDto[]> {
+    const posts = await this.prisma.post.findMany({
+      where: { authorId },
+      include: {
+        author: true,
+      },
+    });
+
+    if (!posts || posts.length === 0) {
+      throw new NotFoundException(
+        `No posts found for author with ID ${authorId}`,
+      );
+    }
+
+    return posts;
+  }
 }

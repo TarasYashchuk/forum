@@ -16,6 +16,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Request } from 'express';
 import { PostService } from './posts.service';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('posts')
 export class PostController {
@@ -73,5 +74,16 @@ export class PostController {
   @Get()
   async getAllPosts(): Promise<PostDto[]> {
     return this.postService.getAllPosts();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('author/:authorId')
+  async getPostsByAuthor(
+    @Param('authorId') authorId: string,
+  ): Promise<PostDto[]> {
+    const posts = await this.postService.getPostsByAuthor(Number(authorId));
+    return posts.map((post) =>
+      plainToInstance(PostDto, post, { excludeExtraneousValues: true }),
+    );
   }
 }
