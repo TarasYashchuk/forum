@@ -102,4 +102,15 @@ export class PostController {
     await this.postService.likePost(Number(postId), userId);
     return { message: 'Post liked successfully' };
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':postId/unlike')
+  async unlikePost(
+    @Param('postId', ParseIntPipe) postId: number,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    const user = (req as any).user as { id: number };
+    await this.postService.unlikePost(postId, user.id);
+    return { message: 'Post unliked successfully' };
+  }
 }

@@ -141,4 +141,28 @@ export class PostService {
       },
     });
   }
+
+  async unlikePost(postId: number, userId: number): Promise<void> {
+    const like = await this.prisma.postLike.findUnique({
+      where: {
+        userId_postId: {
+          userId,
+          postId,
+        },
+      },
+    });
+
+    if (!like) {
+      throw new NotFoundException('Like not found');
+    }
+
+    await this.prisma.postLike.delete({
+      where: {
+        userId_postId: {
+          userId,
+          postId,
+        },
+      },
+    });
+  }
 }
