@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -29,5 +30,16 @@ export class CommentController {
       user.id,
       createCommentDto.content,
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':commentId')
+  async deleteComment(
+    @Param('commentId', ParseIntPipe) commentId: number,
+    @Req() req: Request,
+  ): Promise<{ message: string }> {
+    const user = (req as any).user as { id: number };
+    await this.commentService.deleteComment(commentId, user.id);
+    return { message: 'Comment successfully deleted' };
   }
 }

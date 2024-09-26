@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
@@ -20,6 +24,26 @@ export class CommentService {
         userId,
         postId,
       },
+    });
+  }
+
+  async deleteComment(commentId: number, userId: number): Promise<void> {
+    const comment = await this.prisma.comment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw new NotFoundException(`Comment with ID ${commentId} not found`);
+    }
+
+    if (comment.userId !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to delete this comment',
+      );
+    }
+
+    await this.prisma.comment.delete({
+      where: { id: commentId },
     });
   }
 }
