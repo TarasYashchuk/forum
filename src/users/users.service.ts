@@ -50,30 +50,75 @@ export class UserService {
   async getUserByEmail(email: string): Promise<UserDto> {
     const user = await this.prisma.user.findUnique({
       where: { email },
+      include: {
+        posts: {
+          include: {
+            comments: {
+              include: {
+                user: { select: { id: true, username: true } },
+                likes: { select: { userId: true } },
+              },
+            },
+            likes: { select: { userId: true } },
+          },
+        },
+      },
     });
+
     if (!user) {
       throw new NotFoundException(`User with email ${email} not found`);
     }
+
     return plainToClass(UserDto, user, { excludeExtraneousValues: true });
   }
 
   async findByUsername(username: string): Promise<UserDto> {
     const user = await this.prisma.user.findUnique({
       where: { username },
+      include: {
+        posts: {
+          include: {
+            comments: {
+              include: {
+                user: { select: { id: true, username: true } },
+                likes: { select: { userId: true } },
+              },
+            },
+            likes: { select: { userId: true } },
+          },
+        },
+      },
     });
+
     if (!user) {
       throw new NotFoundException(`User with username ${username} not found`);
     }
+
     return plainToClass(UserDto, user, { excludeExtraneousValues: true });
   }
 
   async getByUsername(username: string): Promise<any> {
     const user = await this.prisma.user.findUnique({
       where: { username },
+      include: {
+        posts: {
+          include: {
+            comments: {
+              include: {
+                user: { select: { id: true, username: true } },
+                likes: { select: { userId: true } },
+              },
+            },
+            likes: { select: { userId: true } },
+          },
+        },
+      },
     });
+
     if (!user) {
       throw new NotFoundException(`User with username ${username} not found`);
     }
+
     return user;
   }
 
@@ -99,7 +144,22 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<UserDto[]> {
-    const users = await this.prisma.user.findMany();
+    const users = await this.prisma.user.findMany({
+      include: {
+        posts: {
+          include: {
+            comments: {
+              include: {
+                user: { select: { id: true, username: true } },
+                likes: { select: { userId: true } },
+              },
+            },
+            likes: { select: { userId: true } },
+          },
+        },
+      },
+    });
+
     return plainToInstance(UserDto, users, { excludeExtraneousValues: true });
   }
 
@@ -123,6 +183,19 @@ export class UserService {
     const user = await this.prisma.user.findUnique({
       where: {
         id: id,
+      },
+      include: {
+        posts: {
+          include: {
+            comments: {
+              include: {
+                user: { select: { id: true, username: true } },
+                likes: { select: { userId: true } },
+              },
+            },
+            likes: { select: { userId: true } },
+          },
+        },
       },
     });
 

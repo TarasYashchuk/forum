@@ -24,7 +24,7 @@ import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { UserIdDto } from './dto/user-id.dto';
 import { UserSearchDto } from './dto/user-search.dto';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcryptjs';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
@@ -35,18 +35,8 @@ export class UserController {
   @Post('register')
   async register(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     const user = await this.userService.createUser(createUserDto);
-    return {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      avatarUrl: user.avatarUrl,
-      bio: user.bio,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      roleId: user.roleId,
-    };
+
+    return plainToInstance(UserDto, user, { excludeExtraneousValues: true });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
