@@ -54,4 +54,9 @@ export class FollowersController {
   async getFollowers(@Param('userId', ParseIntPipe) userId: number) {
     return this.followerService.getFollowers(userId);
   }
+
+  @Get(':userId/following')
+  async getFollowing(@Param('userId', ParseIntPipe) userId: number) {
+    return this.followerService.getFollowing(userId);
+  }
 }
