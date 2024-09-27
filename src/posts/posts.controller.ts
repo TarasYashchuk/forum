@@ -75,6 +75,7 @@ export class PostController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Roles(1, 2)
   @Get('author/:authorId')
   async getPostsByAuthor(
     @Param('authorId') authorId: string,
@@ -85,7 +86,6 @@ export class PostController {
     );
   }
 
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
   @Post(':postId/like')
