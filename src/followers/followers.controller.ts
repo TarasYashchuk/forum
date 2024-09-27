@@ -1,6 +1,7 @@
 import {
   Controller,
   Delete,
+  Get,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -47,5 +48,10 @@ export class FollowersController {
     }
 
     return { message: 'Successfully unfollowed the user' };
+  }
+
+  @Get(':userId/followers')
+  async getFollowers(@Param('userId', ParseIntPipe) userId: number) {
+    return this.followerService.getFollowers(userId);
   }
 }

@@ -45,4 +45,21 @@ export class FollowersService {
       },
     });
   }
+
+  async getFollowers(userId: number) {
+    const userExists = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!userExists) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    return this.prisma.follower.findMany({
+      where: { followingId: userId },
+      include: {
+        follower: { select: { id: true, username: true } },
+      },
+    });
+  }
 }
