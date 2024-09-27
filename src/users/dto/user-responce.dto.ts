@@ -38,4 +38,10 @@ export class UserDto {
   @Expose()
   @Type(() => PostDto)
   posts?: PostDto[];
+
+  @Expose()
+  followers: { id: number; username: string }[];
+
+  @Expose()
+  following: { id: number; username: string }[];
 }
