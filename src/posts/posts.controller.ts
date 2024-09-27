@@ -9,6 +9,8 @@ import {
   UseGuards,
   Req,
   ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { PostDto } from './dto/post/post.dto';
 import { CreatePostDto } from './dto/post/create-post.dto';
@@ -20,6 +22,8 @@ import { plainToInstance } from 'class-transformer';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { RequestWithUser } from 'src/common/request-with-user.interface';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { Multer } from 'multer';
 
 @Controller('posts')
 export class PostController {
@@ -28,12 +32,15 @@ export class PostController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('create-post')
   @Roles(2, 1)
+  @UseInterceptors(FileInterceptor('image'))
   async createPost(
     @Body() createPostDto: CreatePostDto,
     @Req() req: RequestWithUser,
+    @UploadedFile() image: Express.Multer.File,
   ): Promise<PostDto> {
     const userId = req.user.id;
-    return this.postService.createPost(createPostDto, userId);
+
+    return this.postService.createPost(createPostDto, userId, image.buffer);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

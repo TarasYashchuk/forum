@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comment.module';
 import { FollowersModule } from './followers/followers.module';
+import { ImgurService } from './imgur/imgur.service';
 @Module({
   imports: [
     AuthModule,
@@ -17,6 +18,6 @@ import { FollowersModule } from './followers/followers.module';
     FollowersModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [ImgurService],
 })
 export class AppModule {}
