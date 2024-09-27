@@ -12,12 +12,15 @@ import {
 import { RequestWithUser } from 'src/common/request-with-user.interface';
 import { FollowersService } from './followers.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { Roles } from 'src/auth/roles.decorator';
 
 @Controller('followers')
 export class FollowersController {
   constructor(private followerService: FollowersService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Post('follow/:userIdToFollow')
   async followUser(
     @Param('userIdToFollow', ParseIntPipe) userIdToFollow: number,
@@ -28,7 +31,8 @@ export class FollowersController {
     return { message: 'User followed successfully' };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Delete('unfollow/:followingId')
   async unfollowUser(
     @Param('followingId', ParseIntPipe) followingId: number,
@@ -50,11 +54,15 @@ export class FollowersController {
     return { message: 'Successfully unfollowed the user' };
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Get(':userId/followers')
   async getFollowers(@Param('userId', ParseIntPipe) userId: number) {
     return this.followerService.getFollowers(userId);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
   @Get(':userId/following')
   async getFollowing(@Param('userId', ParseIntPipe) userId: number) {
     return this.followerService.getFollowing(userId);
