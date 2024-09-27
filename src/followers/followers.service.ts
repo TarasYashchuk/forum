@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
@@ -8,6 +12,34 @@ export class FollowersService {
   async followUser(followerId: number, followingId: number) {
     return this.prisma.follower.create({
       data: {
+        followerId,
+        followingId,
+      },
+    });
+  }
+
+  async unfollowUser(followerId: number, followingId: number) {
+    if (followerId === followingId) {
+      throw new BadRequestException('You cannot unfollow yourself');
+    }
+
+    const followRecord = await this.prisma.follower.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId,
+          followingId,
+        },
+      },
+    });
+
+    if (!followRecord) {
+      throw new NotFoundException(
+        `You are not following the user with ID ${followingId}`,
+      );
+    }
+
+    return this.prisma.follower.deleteMany({
+      where: {
         followerId,
         followingId,
       },

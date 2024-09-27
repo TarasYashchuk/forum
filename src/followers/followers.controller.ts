@@ -1,5 +1,7 @@
 import {
   Controller,
+  Delete,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -23,5 +25,27 @@ export class FollowersController {
     const userId = req.user.id;
     await this.followerService.followUser(userId, userIdToFollow);
     return { message: 'User followed successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('unfollow/:followingId')
+  async unfollowUser(
+    @Param('followingId', ParseIntPipe) followingId: number,
+    @Req() req: RequestWithUser,
+  ): Promise<{ message: string }> {
+    const user = req.user as { id: number };
+
+    const result = await this.followerService.unfollowUser(
+      user.id,
+      followingId,
+    );
+
+    if (result.count === 0) {
+      throw new NotFoundException(
+        `You are not following the user with ID ${followingId}`,
+      );
+    }
+
+    return { message: 'Successfully unfollowed the user' };
   }
 }
