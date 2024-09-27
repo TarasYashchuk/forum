@@ -62,6 +62,12 @@ export class UserService {
             likes: { select: { userId: true } },
           },
         },
+        followedBy: {
+          include: { follower: { select: { id: true, username: true } } },
+        },
+        following: {
+          include: { following: { select: { id: true, username: true } } },
+        },
       },
     });
 
@@ -69,7 +75,11 @@ export class UserService {
       throw new NotFoundException(`User with email ${email} not found`);
     }
 
-    return plainToClass(UserDto, user, { excludeExtraneousValues: true });
+    const userWithFollowers = mapFollowersAndFollowing(user);
+
+    return plainToClass(UserDto, userWithFollowers, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async findByUsername(username: string): Promise<UserDto> {
@@ -87,6 +97,12 @@ export class UserService {
             likes: { select: { userId: true } },
           },
         },
+        followedBy: {
+          include: { follower: { select: { id: true, username: true } } },
+        },
+        following: {
+          include: { following: { select: { id: true, username: true } } },
+        },
       },
     });
 
@@ -94,7 +110,11 @@ export class UserService {
       throw new NotFoundException(`User with username ${username} not found`);
     }
 
-    return plainToClass(UserDto, user, { excludeExtraneousValues: true });
+    const userWithFollowers = mapFollowersAndFollowing(user);
+
+    return plainToClass(UserDto, userWithFollowers, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async getByUsername(username: string): Promise<any> {
@@ -112,6 +132,12 @@ export class UserService {
             likes: { select: { userId: true } },
           },
         },
+        followedBy: {
+          include: { follower: { select: { id: true, username: true } } },
+        },
+        following: {
+          include: { following: { select: { id: true, username: true } } },
+        },
       },
     });
 
@@ -119,7 +145,9 @@ export class UserService {
       throw new NotFoundException(`User with username ${username} not found`);
     }
 
-    return user;
+    const userWithFollowers = mapFollowersAndFollowing(user);
+
+    return userWithFollowers;
   }
 
   async updateUser(id: number, data: Prisma.UserUpdateInput): Promise<UserDto> {
@@ -157,10 +185,21 @@ export class UserService {
             likes: { select: { userId: true } },
           },
         },
+        followedBy: {
+          include: { follower: { select: { id: true, username: true } } },
+        },
+        following: {
+          include: { following: { select: { id: true, username: true } } },
+        },
       },
     });
 
-    return plainToInstance(UserDto, users, { excludeExtraneousValues: true });
+    const usersWithFollowers = users.map((user) =>
+      mapFollowersAndFollowing(user),
+    );
+    return plainToInstance(UserDto, usersWithFollowers, {
+      excludeExtraneousValues: true,
+    });
   }
 
   // TODO
@@ -176,14 +215,8 @@ export class UserService {
   } */
 
   async getUserById(id: number): Promise<UserDto> {
-    if (!id) {
-      throw new Error('User ID must be provided');
-    }
-
     const user = await this.prisma.user.findUnique({
-      where: {
-        id: id,
-      },
+      where: { id },
       include: {
         posts: {
           include: {
@@ -196,13 +229,39 @@ export class UserService {
             likes: { select: { userId: true } },
           },
         },
+        followedBy: {
+          include: { follower: { select: { id: true, username: true } } },
+        },
+        following: {
+          include: { following: { select: { id: true, username: true } } },
+        },
       },
     });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    return plainToClass(UserDto, user, { excludeExtraneousValues: true });
+    const userWithFollowers = mapFollowersAndFollowing(user);
+    return plainToClass(UserDto, userWithFollowers, {
+      excludeExtraneousValues: true,
+    });
   }
+}
+function mapFollowersAndFollowing(user: any): any {
+  const followers = user.followedBy.map((f: any) => ({
+    id: f.follower.id,
+    username: f.follower.username,
+  }));
+
+  const following = user.following.map((f: any) => ({
+    id: f.following.id,
+    username: f.following.username,
+  }));
+
+  return {
+    ...user,
+    followers,
+    following,
+  };
 }

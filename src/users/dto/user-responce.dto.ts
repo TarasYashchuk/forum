@@ -1,4 +1,6 @@
 import { Exclude, Expose, Type } from 'class-transformer';
+import { FollowerDto } from 'src/followers/dto/follower.dto';
+import { FollowingDto } from 'src/followers/dto/following.dto';
 import { PostDto } from 'src/posts/dto/post/post.dto';
 
 export class UserDto {
@@ -40,8 +42,10 @@ export class UserDto {
   posts?: PostDto[];
 
   @Expose()
-  followers: { id: number; username: string }[];
+  @Type(() => FollowerDto)
+  followers: FollowerDto[];
 
   @Expose()
-  following: { id: number; username: string }[];
+  @Type(() => FollowingDto)
+  following: FollowingDto[];
 }
