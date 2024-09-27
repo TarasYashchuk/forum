@@ -44,8 +44,11 @@ export class CommentController {
     @Param('commentId', ParseIntPipe) commentId: number,
     @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    const userId = req.user.id;
-    await this.commentService.deleteComment(commentId, userId);
+    await this.commentService.deleteComment(
+      commentId,
+      req.user.id,
+      req.user.roleId,
+    );
     return { message: 'Comment successfully deleted' };
   }
 

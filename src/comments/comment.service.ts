@@ -28,7 +28,11 @@ export class CommentService {
     });
   }
 
-  async deleteComment(commentId: number, userId: number): Promise<void> {
+  async deleteComment(
+    commentId: number,
+    userId: number,
+    roleId: number,
+  ): Promise<void> {
     const comment = await this.prisma.comment.findUnique({
       where: { id: commentId },
     });
@@ -37,7 +41,7 @@ export class CommentService {
       throw new NotFoundException(`Comment with ID ${commentId} not found`);
     }
 
-    if (comment.userId !== userId) {
+    if (comment.userId !== userId && roleId !== 1) {
       throw new ForbiddenException(
         'You are not allowed to delete this comment',
       );
