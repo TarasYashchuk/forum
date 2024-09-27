@@ -19,6 +19,7 @@ import { PostService } from './posts.service';
 import { plainToInstance } from 'class-transformer';
 import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import { RequestWithUser } from 'src/common/request-with-user.interface';
 
 @Controller('posts')
 export class PostController {
@@ -29,15 +30,9 @@ export class PostController {
   @Roles(2, 1)
   async createPost(
     @Body() createPostDto: CreatePostDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<PostDto> {
-    const user = (req as any).user as {
-      id: number;
-      username: string;
-      roleId: number;
-    };
-    const userId = user.id;
-
+    const userId = req.user.id;
     return this.postService.createPost(createPostDto, userId);
   }
 
@@ -54,14 +49,10 @@ export class PostController {
   async updatePost(
     @Param('id') postId: string,
     @Body() updatePostDto: UpdatePostDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<PostDto> {
-    const user = (req as any).user as {
-      id: number;
-      username: string;
-      roleId: number;
-    };
-    return this.postService.updatePost(Number(postId), user.id, updatePostDto);
+    const userId = req.user.id;
+    return this.postService.updatePost(Number(postId), userId, updatePostDto);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -69,10 +60,10 @@ export class PostController {
   @Delete(':id')
   async deletePost(
     @Param('id') postId: string,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    const user = (req as any).user as { id: number; roleId: number };
-    await this.postService.deletePost(Number(postId), user.id, user.roleId);
+    const { id: userId, roleId } = req.user;
+    await this.postService.deletePost(Number(postId), userId, roleId);
     return { message: 'Post successfully deleted' };
   }
 
@@ -95,18 +86,14 @@ export class PostController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
   @Post(':postId/like')
   async likePost(
     @Param('postId') postId: string,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    const user = (req as any).user as {
-      id: number;
-      username: string;
-      roleId: number;
-    };
-    const userId = user.id;
+    const userId = req.user.id;
     await this.postService.likePost(Number(postId), userId);
     return { message: 'Post liked successfully' };
   }
@@ -116,10 +103,10 @@ export class PostController {
   @Delete(':postId/unlike')
   async unlikePost(
     @Param('postId', ParseIntPipe) postId: number,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    const user = (req as any).user as { id: number };
-    await this.postService.unlikePost(postId, user.id);
+    const userId = req.user.id;
+    await this.postService.unlikePost(postId, userId);
     return { message: 'Post unliked successfully' };
   }
 }

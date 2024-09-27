@@ -15,6 +15,7 @@ import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Roles } from 'src/auth/roles.decorator';
 import { RolesGuard } from 'src/auth/roles.guard';
+import { RequestWithUser } from 'src/common/request-with-user.interface';
 
 @Controller('comments')
 export class CommentController {
@@ -26,12 +27,12 @@ export class CommentController {
   async createComment(
     @Param('postId', ParseIntPipe) postId: number,
     @Body() createCommentDto: CreateCommentDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ) {
-    const user = (req as any).user as { id: number };
+    const userId = req.user.id;
     return this.commentService.createComment(
       postId,
-      user.id,
+      userId,
       createCommentDto.content,
     );
   }
@@ -41,10 +42,10 @@ export class CommentController {
   @Delete(':commentId')
   async deleteComment(
     @Param('commentId', ParseIntPipe) commentId: number,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    const user = (req as any).user as { id: number };
-    await this.commentService.deleteComment(commentId, user.id);
+    const userId = req.user.id;
+    await this.commentService.deleteComment(commentId, userId);
     return { message: 'Comment successfully deleted' };
   }
 
@@ -60,10 +61,10 @@ export class CommentController {
   @Post(':commentId/like')
   async likeComment(
     @Param('commentId', ParseIntPipe) commentId: number,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    const user = (req as any).user as { id: number };
-    await this.commentService.likeComment(commentId, user.id);
+    const userId = req.user.id;
+    await this.commentService.likeComment(commentId, userId);
     return { message: 'Comment liked' };
   }
 
@@ -72,10 +73,10 @@ export class CommentController {
   @Delete(':commentId/unlike')
   async unlikeComment(
     @Param('commentId', ParseIntPipe) commentId: number,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ): Promise<{ message: string }> {
-    const user = (req as any).user as { id: number };
-    await this.commentService.unlikeComment(commentId, user.id);
+    const userId = req.user.id;
+    await this.commentService.unlikeComment(commentId, userId);
     return { message: 'Comment unliked' };
   }
 
@@ -85,12 +86,12 @@ export class CommentController {
   async updateComment(
     @Param('commentId', ParseIntPipe) commentId: number,
     @Body() updateCommentDto: CreateCommentDto,
-    @Req() req: Request,
+    @Req() req: RequestWithUser,
   ) {
-    const user = (req as any).user as { id: number };
+    const userId = req.user.id;
     return this.commentService.updateComment(
       commentId,
-      user.id,
+      userId,
       updateCommentDto.content,
     );
   }

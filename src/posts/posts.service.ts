@@ -92,7 +92,7 @@ export class PostService {
       throw new NotFoundException(`Post with ID ${postId} not found`);
     }
 
-    if (post.authorId !== userId && roleId !== 1) {
+    if (post.authorId !== userId) {
       throw new ForbiddenException('You are not allowed to delete this post');
     }
 
