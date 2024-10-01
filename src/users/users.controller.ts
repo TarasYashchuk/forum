@@ -36,12 +36,28 @@ import { RequestWithUser } from 'src/common/request-with-user.interface';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (req, file, callback) => {
+        if (!file.mimetype.match(/^image\/(jpeg|jpg|png)$/)) {
+          return callback(
+            new BadRequestException('Unsupported file type'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+    }),
+  )
   @Post('register')
   async register(
     @Body() createUserDto: CreateUserDto,
     @UploadedFile() avatar?: Express.Multer.File,
   ): Promise<UserDto> {
+    if (!avatar) {
+      throw new BadRequestException('No file provided');
+    }
     const avatarBuffer = avatar ? avatar.buffer : null;
     const user = await this.userService.createUser(createUserDto, avatarBuffer);
     return plainToInstance(UserDto, user, { excludeExtraneousValues: true });
@@ -100,11 +116,27 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Roles(1, 2)
   @Patch('update-avatar')
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (req, file, callback) => {
+        if (!file.mimetype.match(/^image\/(jpeg|jpg|png)$/)) {
+          return callback(
+            new BadRequestException('Unsupported file type'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+    }),
+  )
   async updateAvatar(
     @UploadedFile() avatar: Express.Multer.File,
     @Req() req: RequestWithUser,
   ): Promise<UserDto> {
+    if (!avatar) {
+      throw new BadRequestException('No file provided');
+    }
     const userId = req.user.id;
     return this.userService.updateAvatar(userId, avatar.buffer);
   }

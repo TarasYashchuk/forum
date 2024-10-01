@@ -21,6 +21,13 @@ export class UserService {
   ) {}
 
   async createUser(data: CreateUserDto, avatar?: Buffer): Promise<User> {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
+    }
+
     if (data.password !== data.repeatPassword) {
       throw new Error('Passwords do not match');
     }
@@ -252,6 +259,10 @@ export class UserService {
       where: { id: userId },
       data: { avatarUrl },
     });
+
+    if (!updatedUser) {
+      throw new NotFoundException('User not found');
+    }
 
     return plainToClass(UserDto, updatedUser, {
       excludeExtraneousValues: true,
