@@ -244,7 +244,21 @@ export class UserService {
       excludeExtraneousValues: true,
     });
   }
+
+  async updateAvatar(userId: number, avatar: Buffer): Promise<UserDto> {
+    const avatarUrl = await this.imgurService.uploadImage(avatar);
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl },
+    });
+
+    return plainToClass(UserDto, updatedUser, {
+      excludeExtraneousValues: true,
+    });
+  }
 }
+
 function mapFollowersAndFollowing(user: any): any {
   const followers = user.followedBy.map((f: any) => ({
     id: f.follower.id,

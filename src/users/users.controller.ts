@@ -30,6 +30,7 @@ import { plainToClass, plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcryptjs';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { RequestWithUser } from 'src/common/request-with-user.interface';
 
 @Controller('users')
 export class UserController {
@@ -94,5 +95,17 @@ export class UserController {
       throw new NotFoundException(`User with username ${username} not found`);
     }
     return user;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(1, 2)
+  @Patch('update-avatar')
+  @UseInterceptors(FileInterceptor('avatar'))
+  async updateAvatar(
+    @UploadedFile() avatar: Express.Multer.File,
+    @Req() req: RequestWithUser,
+  ): Promise<UserDto> {
+    const userId = req.user.id;
+    return this.userService.updateAvatar(userId, avatar.buffer);
   }
 }
