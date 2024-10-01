@@ -9,6 +9,7 @@ import { PrismaModule } from '../prisma.module';
 import { PrismaService } from 'src/prisma.service';
 import { PasswordResetService } from './password-reset.service';
 import { MailModule } from './mail/mail.module';
+import { ImgurService } from 'src/imgur/imgur.service';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MailModule } from './mail/mail.module';
     UserService,
     PrismaService,
     PasswordResetService,
+    ImgurService,
   ],
   controllers: [AuthController],
 })

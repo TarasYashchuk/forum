@@ -11,7 +11,9 @@ import {
   Put,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -27,15 +29,20 @@ import { UserSearchDto } from './dto/user-search.dto';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcryptjs';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @UseInterceptors(FileInterceptor('avatar'))
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
-    const user = await this.userService.createUser(createUserDto);
-
+  async register(
+    @Body() createUserDto: CreateUserDto,
+    @UploadedFile() avatar?: Express.Multer.File,
+  ): Promise<UserDto> {
+    const avatarBuffer = avatar ? avatar.buffer : null;
+    const user = await this.userService.createUser(createUserDto, avatarBuffer);
     return plainToInstance(UserDto, user, { excludeExtraneousValues: true });
   }
 

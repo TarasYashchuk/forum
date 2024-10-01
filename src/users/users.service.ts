@@ -11,24 +11,33 @@ import { plainToClass, plainToInstance } from 'class-transformer';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserSearchDto } from './dto/user-search.dto';
 import { nanoid } from 'nanoid';
+import { ImgurService } from 'src/imgur/imgur.service';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private imgurService: ImgurService,
+  ) {}
 
-  async createUser(data: CreateUserDto): Promise<User> {
+  async createUser(data: CreateUserDto, avatar?: Buffer): Promise<User> {
     if (data.password !== data.repeatPassword) {
       throw new Error('Passwords do not match');
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
+    let avatarUrl: string | null = null;
+
+    if (avatar) {
+      avatarUrl = await this.imgurService.uploadImage(avatar);
+    }
 
     const userRole = await this.prisma.role.findUnique({
       where: { name: 'user' },
     });
 
     if (!userRole) {
-      throw new Error('Role "admin" not found');
+      throw new Error('Role "user" not found');
     }
 
     return this.prisma.user.create({
@@ -38,7 +47,7 @@ export class UserService {
         password: hashedPassword,
         firstName: data.firstName,
         lastName: data.lastName,
-        avatarUrl: data.avatarUrl,
+        avatarUrl,
         bio: data.bio,
         role: {
           connect: { id: userRole.id },
@@ -201,18 +210,6 @@ export class UserService {
       excludeExtraneousValues: true,
     });
   }
-
-  // TODO
-
-  /* async updateUserProfile(
-    id: number,
-    profileData: { avatarUrl?: string; bio?: string },
-  ): Promise<User> {
-    return this.prisma.user.update({
-      where: { id },
-      data: profileData,
-    });
-  } */
 
   async getUserById(id: number): Promise<UserDto> {
     const user = await this.prisma.user.findUnique({
