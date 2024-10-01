@@ -9,21 +9,30 @@ import { PostDto } from './dto/post/post.dto';
 import { CreatePostDto } from './dto/post/create-post.dto';
 import { UpdatePostDto } from './dto/post/update-post.dto';
 import { plainToClass, plainToInstance } from 'class-transformer';
+import { ImgurService } from 'src/imgur/imgur.service';
 
 @Injectable()
 export class PostService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private imgurService: ImgurService,
+  ) {}
 
   async createPost(
     createPostDto: CreatePostDto,
     userId: number,
+    image: Buffer,
   ): Promise<PostDto> {
+    const imageUrl = await this.imgurService.uploadImage(image);
+
     const post = await this.prisma.post.create({
       data: {
         ...createPostDto,
+        imageUrl,
         authorId: userId,
       },
     });
+
     return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
   }
 
