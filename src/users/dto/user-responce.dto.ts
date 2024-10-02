@@ -43,9 +43,9 @@ export class UserDto {
 
   @Expose()
   @Type(() => FollowerDto)
-  followers: FollowerDto[];
+  followers?: FollowerDto[];
 
   @Expose()
   @Type(() => FollowingDto)
-  following: FollowingDto[];
+  following?: FollowingDto[];
 }

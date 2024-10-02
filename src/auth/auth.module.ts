@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma.service';
 import { PasswordResetService } from './password-reset.service';
 import { MailModule } from './mail/mail.module';
 import { ImgurService } from 'src/imgur/imgur.service';
+import { GoogleStrategy } from './google.strategy';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ImgurService } from 'src/imgur/imgur.service';
     PrismaService,
     PasswordResetService,
     ImgurService,
+    GoogleStrategy,
   ],
   controllers: [AuthController],
 })
