@@ -11,7 +11,9 @@ import {
   Put,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -27,15 +29,37 @@ import { UserSearchDto } from './dto/user-search.dto';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import * as bcrypt from 'bcryptjs';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { RequestWithUser } from 'src/common/request-with-user.interface';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (req, file, callback) => {
+        if (!file.mimetype.match(/^image\/(jpeg|jpg|png)$/)) {
+          return callback(
+            new BadRequestException('Unsupported file type'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+    }),
+  )
   @Post('register')
-  async register(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
-    const user = await this.userService.createUser(createUserDto);
-
+  async register(
+    @Body() createUserDto: CreateUserDto,
+    @UploadedFile() avatar?: Express.Multer.File,
+  ): Promise<UserDto> {
+    if (!avatar) {
+      throw new BadRequestException('No file provided');
+    }
+    const avatarBuffer = avatar ? avatar.buffer : null;
+    const user = await this.userService.createUser(createUserDto, avatarBuffer);
     return plainToInstance(UserDto, user, { excludeExtraneousValues: true });
   }
 
@@ -87,5 +111,33 @@ export class UserController {
       throw new NotFoundException(`User with username ${username} not found`);
     }
     return user;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Roles(1, 2)
+  @Patch('update-avatar')
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (req, file, callback) => {
+        if (!file.mimetype.match(/^image\/(jpeg|jpg|png)$/)) {
+          return callback(
+            new BadRequestException('Unsupported file type'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+    }),
+  )
+  async updateAvatar(
+    @UploadedFile() avatar: Express.Multer.File,
+    @Req() req: RequestWithUser,
+  ): Promise<UserDto> {
+    if (!avatar) {
+      throw new BadRequestException('No file provided');
+    }
+    const userId = req.user.id;
+    return this.userService.updateAvatar(userId, avatar.buffer);
   }
 }

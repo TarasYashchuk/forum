@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { PostDto } from './dto/post/post.dto';
 import { CreatePostDto } from './dto/post/create-post.dto';
@@ -32,7 +33,20 @@ export class PostController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post('create-post')
   @Roles(2, 1)
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(
+    FileInterceptor('image', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (req, file, callback) => {
+        if (!file.mimetype.match(/^image\/(jpeg|jpg|png)$/)) {
+          return callback(
+            new BadRequestException('Unsupported file type'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+    }),
+  )
   async createPost(
     @Body() createPostDto: CreatePostDto,
     @Req() req: RequestWithUser,
