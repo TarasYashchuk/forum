@@ -12,6 +12,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UserSearchDto } from './dto/user-search.dto';
 import { nanoid } from 'nanoid';
 import { ImgurService } from 'src/imgur/imgur.service';
+import { OAuthUserDto } from './dto/oauth-user.dto';
 
 @Injectable()
 export class UserService {
@@ -266,6 +267,36 @@ export class UserService {
 
     return plainToClass(UserDto, updatedUser, {
       excludeExtraneousValues: true,
+    });
+  }
+
+  async createOAuthUser(oauthUser: OAuthUserDto): Promise<User> {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: oauthUser.email },
+    });
+
+    if (existingUser) {
+      throw new Error('User with this email already exists');
+    }
+
+    const userRole = await this.prisma.role.findUnique({
+      where: { name: 'user' },
+    });
+
+    if (!userRole) {
+      throw new Error('Role "user" not found');
+    }
+
+    return this.prisma.user.create({
+      data: {
+        email: oauthUser.email,
+        username: oauthUser.email.split('@')[0],
+        password: '',
+        firstName: oauthUser.firstName,
+        lastName: oauthUser.lastName,
+        avatarUrl: oauthUser.avatarUrl,
+        role: { connect: { id: userRole.id } },
+      },
     });
   }
 }

@@ -64,7 +64,7 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(1)
+  @Roles(1, 2)
   @Get(':id')
   @UsePipes(new ValidationPipe({ transform: true }))
   async getUserById(@Param() params: UserIdDto): Promise<UserDto> {

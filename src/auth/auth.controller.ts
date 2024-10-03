@@ -2,9 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   Patch,
   Post,
   Query,
+  Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
@@ -15,6 +17,7 @@ import { Roles } from './roles.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { RolesGuard } from './roles.guard';
 import { MailService } from './mail/mail.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -69,5 +72,19 @@ export class AuthController {
     await this.passwordResetService.resetPassword(userId, newPassword);
 
     return { message: 'Password successfully reset' };
+  }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  async googleAuth() {}
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  googleAuthRedirect(@Req() req) {
+    return {
+      message: 'User information from Google',
+      user: req.user.user,
+      token: req.user.token,
+    };
   }
 }
