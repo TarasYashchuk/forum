@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma.service';
 import * as winston from 'winston';
 
 @Injectable()
 export class WinstonLoggerService {
   private logger: winston.Logger;
 
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     this.logger = winston.createLogger({
       level: 'info',
       format: winston.format.combine(
@@ -17,6 +18,24 @@ export class WinstonLoggerService {
         new winston.transports.File({ filename: 'combined.log' }),
       ],
     });
+  }
+
+  async logAction(
+    action: string,
+    userId: number,
+    postId?: number,
+    commentId?: number,
+  ) {
+    await this.prisma.actionLog.create({
+      data: {
+        action,
+        userId,
+        postId,
+        commentId,
+        createdAt: new Date(),
+      },
+    });
+    this.logger.info(`Action "${action}" logged for user with id ${userId}`);
   }
 
   log(message: string, context?: any) {

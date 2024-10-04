@@ -39,7 +39,7 @@ export class PostService {
         },
       });
 
-      await this.logAction('CREATE_POST', userId, post.id);
+      await this.logger.logAction('CREATE_POST', userId, post.id);
       this.logger.log(`Post created successfully by user with id ${userId}`);
 
       return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
@@ -79,7 +79,7 @@ export class PostService {
       this.logger.log(
         `User with id ${userId} retrieved post with id ${id} successfully`,
       );
-      await this.logAction('VIEW_POST', userId, id);
+      await this.logger.logAction('VIEW_POST', userId, id);
 
       return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
     } catch (error) {
@@ -116,7 +116,7 @@ export class PostService {
         data: { ...updatePostDto },
       });
 
-      await this.logAction('UPDATE_POST', userId, postId);
+      await this.logger.logAction('UPDATE_POST', userId, postId);
       this.logger.log(
         `Post with id ${postId} updated successfully by user with id ${userId}`,
       );
@@ -157,7 +157,7 @@ export class PostService {
         where: { id: postId },
       });
 
-      await this.logAction('DELETE_POST', userId, postId);
+      await this.logger.logAction('DELETE_POST', userId, postId);
       this.logger.log(
         `Post with id ${postId} deleted successfully by user with id ${userId}`,
       );
@@ -252,7 +252,7 @@ export class PostService {
         },
       });
 
-      await this.logAction('LIKE_POST', userId, postId);
+      await this.logger.logAction('LIKE_POST', userId, postId);
       this.logger.log(
         `Post with id ${postId} successfully liked by user with id ${userId}`,
       );
@@ -290,7 +290,7 @@ export class PostService {
         },
       });
 
-      await this.logAction('UNLIKE_POST', userId, postId);
+      await this.logger.logAction('UNLIKE_POST', userId, postId);
       this.logger.log(
         `Post with id ${postId} successfully unliked by user with id ${userId}`,
       );
@@ -300,22 +300,5 @@ export class PostService {
       );
       throw error;
     }
-  }
-  async logAction(
-    action: string,
-    userId: number,
-    postId?: number,
-    commentId?: number,
-  ) {
-    await this.prisma.actionLog.create({
-      data: {
-        action,
-        userId,
-        postId,
-        commentId,
-        createdAt: new Date(),
-      },
-    });
-    this.logger.log(`Action "${action}" logged for user with id ${userId}`);
   }
 }
