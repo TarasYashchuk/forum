@@ -10,7 +10,14 @@ export class WinstonLoggerService {
     this.logger = winston.createLogger({
       level: 'info',
       format: winston.format.combine(
-        winston.format.timestamp(),
+        winston.format.timestamp({
+          format: () => {
+            const date = new Date();
+            const offset = 3 * 60 * 60 * 1000;
+            const localDate = new Date(date.getTime() + offset);
+            return localDate.toISOString();
+          },
+        }),
         winston.format.json(),
       ),
       transports: [
