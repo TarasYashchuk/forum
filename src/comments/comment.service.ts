@@ -15,8 +15,9 @@ export class CommentService {
   ) {}
 
   async createComment(postId: number, userId: number, content: string) {
+    const methodName = this.createComment.name;
     this.logger.log(
-      `Start method 'createComment' executed by user with id ${userId}`,
+      `Start method ${methodName} executed by user with id ${userId}`,
     );
     this.logger.log(
       `User with id ${userId} is creating a comment on post with id ${postId} with content: "${content}"`,
@@ -56,8 +57,9 @@ export class CommentService {
     userId: number,
     roleId: number,
   ): Promise<void> {
+    const methodName = this.deleteComment.name;
     this.logger.log(
-      `Start method 'deleteComment' executed by user with id ${userId}`,
+      `Start method ${methodName} executed by user with id ${userId}`,
     );
     this.logger.log(
       `User with id ${userId} is attempting to delete comment ${commentId}`,
@@ -99,7 +101,8 @@ export class CommentService {
   }
 
   async getCommentsByPost(postId: number) {
-    this.logger.log(`Start method 'getCommentsByPost' executed`);
+    const methodName = this.getCommentsByPost.name;
+    this.logger.log(`Start method ${methodName} executed`);
     this.logger.log(`Fetching comments for post ${postId}`);
     try {
       const comments = await this.prisma.comment.findMany({
@@ -123,8 +126,9 @@ export class CommentService {
   }
 
   async likeComment(commentId: number, userId: number): Promise<void> {
+    const methodName = this.likeComment.name;
     this.logger.log(
-      `Start method 'likeComment' executed by user with id ${userId}`,
+      `Start method ${methodName} executed by user with id ${userId}`,
     );
     this.logger.log(
       `User with id ${userId} is attempting to like comment with id ${commentId}`,
@@ -163,8 +167,9 @@ export class CommentService {
   }
 
   async unlikeComment(commentId: number, userId: number): Promise<void> {
+    const methodName = this.unlikeComment.name;
     this.logger.log(
-      `Start method 'unlikeComment' executed by user with id ${userId}`,
+      `Start method ${methodName} executed by user with id ${userId}`,
     );
     this.logger.log(
       `User with id ${userId} is attempting to unlike comment with id ${commentId}`,
@@ -210,8 +215,9 @@ export class CommentService {
   }
 
   async updateComment(commentId: number, userId: number, content: string) {
+    const methodName = this.updateComment.name;
     this.logger.log(
-      `Start method 'updateComment' executed by user with id ${userId}`,
+      `Start method ${methodName} executed by user with id ${userId}`,
     );
     this.logger.log(
       `User with id ${userId} is attempting to update comment with id ${commentId} with content: "${content}"`,
