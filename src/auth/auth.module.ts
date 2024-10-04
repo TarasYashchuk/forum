@@ -11,6 +11,7 @@ import { PasswordResetService } from './password-reset.service';
 import { MailModule } from './mail/mail.module';
 import { ImgurService } from 'src/imgur/imgur.service';
 import { GoogleStrategy } from './google.strategy';
+import { WinstonLoggerService } from 'src/logger/winston-logger.service';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { GoogleStrategy } from './google.strategy';
     PasswordResetService,
     ImgurService,
     GoogleStrategy,
+    WinstonLoggerService,
   ],
   controllers: [AuthController],
 })
