@@ -8,6 +8,8 @@ import { CommentsModule } from './comments/comment.module';
 import { FollowersModule } from './followers/followers.module';
 import { ImgurService } from './imgur/imgur.service';
 import { ImgurModule } from './imgur/imgur.module';
+import { StatisticsController } from './statistic/statistics.controller';
+import { StatisticsService } from './statistic/statistics.service';
 
 @Module({
   imports: [
@@ -20,7 +22,7 @@ import { ImgurModule } from './imgur/imgur.module';
     FollowersModule,
     ImgurModule,
   ],
-  controllers: [],
-  providers: [ImgurService],
+  controllers: [StatisticsController],
+  providers: [ImgurService, StatisticsService],
 })
 export class AppModule {}
