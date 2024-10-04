@@ -35,6 +35,7 @@ model User {
   followedBy   Follower[]    @relation("UserFollowers")
   following    Follower[]    @relation("UserFollowing")
   resetTokens PasswordResetToken[]
+  actionLogs ActionLog[]
 
   @@map("users")
 }
@@ -60,6 +61,7 @@ model Post {
   author   User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments Comment[] // one post can have many comments
   likes    PostLike[] // one post can have many likes
+  actionLogs ActionLog[]
 
   @@map("posts")
 }
@@ -72,6 +74,7 @@ model Comment {
   user    User          @relation(fields: [userId], references: [id])
   post    Post          @relation(fields: [postId], references: [id])
   likes   CommentLike[] // зворотнє посилання на модель CommentLike
+  actionLogs ActionLog[]
 
   @@map("comments")
 }
@@ -82,6 +85,7 @@ model PostLike {
   postId Int
   user   User @relation("UserPostLikes", fields: [userId], references: [id])
   post   Post @relation(fields: [postId], references: [id])
+  actionLogs ActionLog[]
 
   @@unique([userId, postId])
   @@map("post_likes")
@@ -119,4 +123,21 @@ model PasswordResetToken {
   createdAt DateTime @default(now())
   
   @@map("password_reset_tokens")
+}
+
+model ActionLog {
+  id        Int      @id @default(autoincrement())
+  action    String
+  userId    Int
+  postId    Int?
+  commentId Int?
+  likeId    Int?
+  createdAt DateTime @default(now())
+
+  user      User    @relation(fields: [userId], references: [id])
+  post      Post?   @relation(fields: [postId], references: [id])
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  like      PostLike? @relation(fields: [likeId], references: [id])
+
+  @@map("action_logs")
 }
