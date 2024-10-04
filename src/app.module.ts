@@ -7,6 +7,8 @@ import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comment.module';
 import { FollowersModule } from './followers/followers.module';
 import { ImgurService } from './imgur/imgur.service';
+import { ImgurModule } from './imgur/imgur.module';
+
 @Module({
   imports: [
     AuthModule,
@@ -16,6 +18,7 @@ import { ImgurService } from './imgur/imgur.service';
     PostsModule,
     CommentsModule,
     FollowersModule,
+    ImgurModule,
   ],
   controllers: [],
   providers: [ImgurService],
