@@ -60,8 +60,12 @@ export class PostController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1)
   @Get(':id')
-  async getPostById(@Param('id', ParseIntPipe) id: number): Promise<PostDto> {
-    return this.postService.getPostById(id);
+  async getPostById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
+  ): Promise<PostDto> {
+    const userId = req.user.id;
+    return this.postService.getPostById(id, userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

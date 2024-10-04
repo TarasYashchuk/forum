@@ -23,8 +23,8 @@ export class WinstonLoggerService {
     this.logger.info(message, { context });
   }
 
-  error(message: string, trace: string, context?: any) {
-    this.logger.error(message, { trace, context });
+  error(message: string) {
+    this.logger.error(message);
   }
 
   warn(message: string, context?: any) {
