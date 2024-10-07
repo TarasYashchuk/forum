@@ -24,19 +24,16 @@ export class UserService {
   ) {}
 
   async createUser(data: CreateUserDto, avatar?: Buffer): Promise<User> {
-    this.logger.log('Start creating a new user');
     try {
       const existingUser = await this.prisma.user.findUnique({
         where: { email: data.email },
       });
 
       if (existingUser) {
-        this.logger.warn(`User with email ${data.email} already exists`);
         throw new BadRequestException('User with this email already exists');
       }
 
       if (data.password !== data.repeatPassword) {
-        this.logger.error('Passwords do not match');
         throw new Error('Passwords do not match');
       }
 
@@ -53,7 +50,6 @@ export class UserService {
       });
 
       if (!userRole) {
-        this.logger.error('Role "user" not found');
         throw new Error('Role "user" not found');
       }
 
@@ -81,7 +77,6 @@ export class UserService {
   }
 
   async getUserByEmail(email: string): Promise<UserDto> {
-    this.logger.log(`Fetching user by email: ${email}`);
     try {
       const user = await this.prisma.user.findUnique({
         where: { email },
@@ -107,7 +102,6 @@ export class UserService {
       });
 
       if (!user) {
-        this.logger.warn(`User with email ${email} not found`);
         throw new NotFoundException(`User with email ${email} not found`);
       }
 
@@ -126,7 +120,6 @@ export class UserService {
   }
 
   async findByUsername(username: string): Promise<UserDto> {
-    this.logger.log(`Fetching user by username: ${username}`);
     try {
       const user = await this.prisma.user.findUnique({
         where: { username },
@@ -152,7 +145,6 @@ export class UserService {
       });
 
       if (!user) {
-        this.logger.warn(`User with username ${username} not found`);
         throw new NotFoundException(`User with username ${username} not found`);
       }
 
@@ -171,7 +163,6 @@ export class UserService {
   }
 
   async getByUsername(username: string): Promise<any> {
-    this.logger.log(`Fetching user by username: ${username}`);
     try {
       const user = await this.prisma.user.findUnique({
         where: { username },
@@ -197,7 +188,6 @@ export class UserService {
       });
 
       if (!user) {
-        this.logger.warn(`User with username ${username} not found`);
         throw new NotFoundException(`User with username ${username} not found`);
       }
 
@@ -214,7 +204,6 @@ export class UserService {
   }
 
   async updateUser(id: number, data: Prisma.UserUpdateInput): Promise<UserDto> {
-    this.logger.log(`Updating user with ID: ${id}`);
     try {
       const user = await this.prisma.user.update({
         where: { id },
@@ -222,7 +211,6 @@ export class UserService {
       });
 
       if (!user) {
-        this.logger.warn(`User with ID ${id} not found`);
         throw new NotFoundException(`User with id ${id} not found`);
       }
 
@@ -237,14 +225,12 @@ export class UserService {
   }
 
   async deleteUser(id: number): Promise<UserDto> {
-    this.logger.log(`Deleting user with ID: ${id}`);
     try {
       const user = await this.prisma.user.delete({
         where: { id },
       });
 
       if (!user) {
-        this.logger.warn(`User with ID ${id} not found`);
         throw new NotFoundException(`User with id ${id} not found`);
       }
 
@@ -259,7 +245,6 @@ export class UserService {
   }
 
   async getAllUsers(): Promise<UserDto[]> {
-    this.logger.log(`Fetching all users`);
     try {
       const users = await this.prisma.user.findMany({
         include: {
@@ -298,7 +283,6 @@ export class UserService {
   }
 
   async getUserById(id: number): Promise<UserDto> {
-    this.logger.log(`Fetching user by ID: ${id}`);
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
@@ -324,7 +308,6 @@ export class UserService {
       });
 
       if (!user) {
-        this.logger.warn(`User with ID ${id} not found`);
         throw new NotFoundException(`User with ID ${id} not found`);
       }
 
@@ -341,7 +324,6 @@ export class UserService {
   }
 
   async updateAvatar(userId: number, avatar: Buffer): Promise<UserDto> {
-    this.logger.log(`Updating avatar for user with ID: ${userId}`);
     try {
       const avatarUrl = await this.imgurService.uploadImage(avatar);
 
@@ -351,7 +333,6 @@ export class UserService {
       });
 
       if (!updatedUser) {
-        this.logger.warn(`User with ID ${userId} not found`);
         throw new NotFoundException('User not found');
       }
 
@@ -368,14 +349,12 @@ export class UserService {
   }
 
   async createOAuthUser(oauthUser: OAuthUserDto): Promise<User> {
-    this.logger.log(`Creating OAuth user with email: ${oauthUser.email}`);
     try {
       const existingUser = await this.prisma.user.findUnique({
         where: { email: oauthUser.email },
       });
 
       if (existingUser) {
-        this.logger.warn(`User with email ${oauthUser.email} already exists`);
         throw new Error('User with this email already exists');
       }
 
@@ -384,7 +363,6 @@ export class UserService {
       });
 
       if (!userRole) {
-        this.logger.error('Role "user" not found');
         throw new Error('Role "user" not found');
       }
 

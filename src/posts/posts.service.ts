@@ -25,10 +25,6 @@ export class PostService {
     userId: number,
     image: Buffer,
   ): Promise<PostDto> {
-    const methodName = this.createPost.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
     try {
       const imageUrl = await this.imgurService.uploadImage(image);
 
@@ -54,10 +50,6 @@ export class PostService {
   }
 
   async getPostById(id: number, userId: number): Promise<PostDto> {
-    const methodName = this.getPostById.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
     try {
       const post = await this.prisma.post.findUnique({
         where: { id },
@@ -97,10 +89,6 @@ export class PostService {
     userId: number,
     updatePostDto: UpdatePostDto,
   ): Promise<PostDto> {
-    const methodName = this.updatePost.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
     try {
       const post = await this.prisma.post.findUnique({
         where: { id: postId },
@@ -140,10 +128,6 @@ export class PostService {
     userId: number,
     roleId: number,
   ): Promise<void> {
-    const methodName = this.deletePost.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
     try {
       const post = await this.prisma.post.findUnique({
         where: { id: postId },
@@ -174,8 +158,6 @@ export class PostService {
   }
 
   async getAllPosts(): Promise<PostDto[]> {
-    const methodName = this.getAllPosts.name;
-    this.logger.log(`Start method ${methodName} executed`);
     try {
       const posts = await this.prisma.post.findMany({
         include: {
@@ -199,10 +181,6 @@ export class PostService {
   }
 
   async getPostsByAuthor(authorId: number): Promise<PostDto[]> {
-    const methodName = this.getPostsByAuthor.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${authorId}`,
-    );
     try {
       const posts = await this.prisma.post.findMany({
         where: { authorId },
@@ -237,10 +215,6 @@ export class PostService {
   }
 
   async likePost(postId: number, userId: number): Promise<void> {
-    const methodName = this.likePost.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId} for post with id ${postId}`,
-    );
     try {
       const existingLike = await this.prisma.postLike.findUnique({
         where: {
@@ -271,10 +245,6 @@ export class PostService {
     }
   }
   async unlikePost(postId: number, userId: number): Promise<void> {
-    const methodName = this.unlikePost.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId} for post with id ${postId}`,
-    );
     try {
       const like = await this.prisma.postLike.findUnique({
         where: {

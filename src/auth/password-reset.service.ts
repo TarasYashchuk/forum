@@ -17,9 +17,6 @@ export class PasswordResetService {
   ) {}
 
   async createPasswordResetToken(userId: number): Promise<string> {
-    this.logger.log(
-      `Creating password reset token for user with ID: ${userId}`,
-    );
     try {
       const token = uuidv4();
       const expiresAt = new Date();
@@ -46,19 +43,15 @@ export class PasswordResetService {
   }
 
   async validatePasswordResetToken(token: string): Promise<number> {
-    this.logger.log(`Validating password reset token: ${token}`);
     try {
       if (!token) {
-        this.logger.warn('Token not provided for validation');
         throw new BadRequestException('Token must be provided');
       }
-
       const resetToken = await this.prisma.passwordResetToken.findUnique({
         where: { token },
       });
 
       if (!resetToken) {
-        this.logger.warn(`Invalid or expired reset token: ${token}`);
         throw new BadRequestException('Invalid or expired reset token');
       }
 
@@ -75,7 +68,6 @@ export class PasswordResetService {
   }
 
   async resetPassword(userId: number, newPassword: string): Promise<void> {
-    this.logger.log(`Resetting password for user with ID: ${userId}`);
     try {
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 

@@ -29,7 +29,6 @@ export class MailService {
     };
 
     try {
-      this.logger.log(`Attempting to send password reset email to ${to}`);
       const info = await this.transporter.sendMail(message);
       this.logger.log(`Password reset email sent successfully to ${to}}`);
     } catch (error) {

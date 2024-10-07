@@ -14,14 +14,6 @@ export class FollowersService {
   ) {}
 
   async followUser(followerId: number, followingId: number) {
-    const methodName = this.followUser.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${followerId}`,
-    );
-    this.logger.log(
-      `User with id ${followerId} is attempting to follow user with id  ${followingId}`,
-    );
-
     try {
       const follow = await this.prisma.follower.create({
         data: {
@@ -44,14 +36,6 @@ export class FollowersService {
   }
 
   async unfollowUser(followerId: number, followingId: number) {
-    const methodName = this.unfollowUser.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${followerId}`,
-    );
-    this.logger.log(
-      `User with id ${followerId} is attempting to unfollow user with id ${followingId}`,
-    );
-
     try {
       if (followerId === followingId) {
         throw new BadRequestException('You cannot unfollow yourself');
@@ -93,12 +77,6 @@ export class FollowersService {
   }
 
   async getFollowers(userId: number) {
-    const methodName = this.getFollowers.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
-    this.logger.log(`Fetching followers for user with id ${userId}`);
-
     try {
       const userExists = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -128,11 +106,6 @@ export class FollowersService {
   }
 
   async getFollowing(userId: number) {
-    const methodName = this.getFollowing.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
-    this.logger.log(`Fetching following users for user with id ${userId}`);
     try {
       const userExists = await this.prisma.user.findUnique({
         where: { id: userId },

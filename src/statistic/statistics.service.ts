@@ -11,7 +11,6 @@ export class StatisticsService {
 
   async getActionCountByType(action: string): Promise<number> {
     try {
-      this.logger.log(`Fetching action count for action type: ${action}`);
       const count = await this.prisma.actionLog.count({
         where: {
           action: action,
@@ -31,7 +30,6 @@ export class StatisticsService {
 
   async getUserActionStatistics(userId: number): Promise<any> {
     try {
-      this.logger.log(`Fetching action statistics for user with ID: ${userId}`);
       const postCreatedCount = await this.prisma.actionLog.count({
         where: {
           action: 'CREATE_POST',
@@ -83,7 +81,6 @@ export class StatisticsService {
 
   async getGlobalActionStatistics(): Promise<any> {
     try {
-      this.logger.log('Fetching global action statistics');
       const totalPostsCreated = await this.getActionCountByType('CREATE_POST');
       const totalPostsViewed = await this.getActionCountByType('VIEW_POST');
       const totalComments = await this.getActionCountByType('CREATE_COMMENT');

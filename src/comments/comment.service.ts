@@ -15,13 +15,6 @@ export class CommentService {
   ) {}
 
   async createComment(postId: number, userId: number, content: string) {
-    const methodName = this.createComment.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
-    this.logger.log(
-      `User with id ${userId} is creating a comment on post with id ${postId} with content: "${content}"`,
-    );
     try {
       const post = await this.prisma.post.findUnique({
         where: { id: postId },
@@ -57,13 +50,6 @@ export class CommentService {
     userId: number,
     roleId: number,
   ): Promise<void> {
-    const methodName = this.deleteComment.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
-    this.logger.log(
-      `User with id ${userId} is attempting to delete comment ${commentId}`,
-    );
     try {
       const comment = await this.prisma.comment.findUnique({
         where: { id: commentId },
@@ -101,9 +87,6 @@ export class CommentService {
   }
 
   async getCommentsByPost(postId: number) {
-    const methodName = this.getCommentsByPost.name;
-    this.logger.log(`Start method ${methodName} executed`);
-    this.logger.log(`Fetching comments for post ${postId}`);
     try {
       const comments = await this.prisma.comment.findMany({
         where: { postId },
@@ -126,13 +109,6 @@ export class CommentService {
   }
 
   async likeComment(commentId: number, userId: number): Promise<void> {
-    const methodName = this.likeComment.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
-    this.logger.log(
-      `User with id ${userId} is attempting to like comment with id ${commentId}`,
-    );
     try {
       const existingLike = await this.prisma.commentLike.findUnique({
         where: {
@@ -167,13 +143,6 @@ export class CommentService {
   }
 
   async unlikeComment(commentId: number, userId: number): Promise<void> {
-    const methodName = this.unlikeComment.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
-    this.logger.log(
-      `User with id ${userId} is attempting to unlike comment with id ${commentId}`,
-    );
     try {
       const existingLike = await this.prisma.commentLike.findUnique({
         where: {
@@ -215,13 +184,6 @@ export class CommentService {
   }
 
   async updateComment(commentId: number, userId: number, content: string) {
-    const methodName = this.updateComment.name;
-    this.logger.log(
-      `Start method ${methodName} executed by user with id ${userId}`,
-    );
-    this.logger.log(
-      `User with id ${userId} is attempting to update comment with id ${commentId} with content: "${content}"`,
-    );
     try {
       const comment = await this.prisma.comment.findUnique({
         where: { id: commentId },

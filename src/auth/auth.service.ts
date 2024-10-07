@@ -20,24 +20,20 @@ export class AuthService {
   ) {}
 
   async validateUser(username: string, password: string): Promise<any> {
-    this.logger.log(`Validating user: ${username}`);
     try {
       const user = await this.userService.getByUsername(username);
 
       if (!user) {
-        this.logger.warn(`User not found: ${username}`);
         return null;
       }
 
       if (!user.password) {
-        this.logger.error(`Password is missing for user: ${username}`);
         throw new Error('Password is missing for the user');
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
-        this.logger.warn(`Invalid password for user: ${username}`);
-        return null;
+        throw new Error(`Invalid password for user: ${username}`);
       }
 
       this.logger.log(`User validated successfully: ${username}`);
@@ -52,7 +48,6 @@ export class AuthService {
   }
 
   async login(user: any) {
-    this.logger.log(`User ${user.username} is attempting to log in`);
     try {
       const payload: JwtPayload = {
         username: user.username,
@@ -73,10 +68,8 @@ export class AuthService {
   generateJwtToken(user: UserDto): string {
     try {
       if (!user || !user.id || !user.username) {
-        this.logger.error('Invalid user data provided for JWT generation');
         throw new Error('Cannot generate token: Invalid user data');
       }
-      this.logger.log(`Generating JWT for user: ${user.username}`);
       const payload = {
         username: user.username,
         sub: user.id,
@@ -97,11 +90,6 @@ export class AuthService {
     this.logger.log(`Searching for user by email: ${email}`);
     try {
       const user = await this.prisma.user.findUnique({ where: { email } });
-      if (user) {
-        this.logger.log(`User found with email: ${email}`);
-      } else {
-        this.logger.warn(`No user found with email: ${email}`);
-      }
       return user;
     } catch (error) {
       this.logger.error(
@@ -114,14 +102,10 @@ export class AuthService {
   async validateOAuthUser(
     oauthUser: OAuthUserDto,
   ): Promise<{ user: UserDto; token: string }> {
-    this.logger.log(`Validating OAuth user: ${oauthUser.email}`);
     try {
       let userFromDb = await this.findUserByEmail(oauthUser.email);
 
       if (!userFromDb) {
-        this.logger.log(
-          `Creating a new user from OAuth data for email: ${oauthUser.email}`,
-        );
         userFromDb = await this.userService.createOAuthUser(oauthUser);
       }
 
