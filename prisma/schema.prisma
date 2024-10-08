@@ -50,17 +50,19 @@ model Role {
 }
 
 model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String   @db.Text
-  imageUrl  String?  @map("image_url")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         Int       @id @default(autoincrement())
+  title      String
+  content    String    @db.Text
+  imageUrl   String?   @map("image_url")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  statusId   Int        
+  status     PostStatus @relation(fields: [statusId], references: [id])
 
-  authorId Int
-  author   User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments Comment[] // one post can have many comments
-  likes    PostLike[] // one post can have many likes
+  authorId   Int
+  author     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments   Comment[] // one post can have many comments
+  likes      PostLike[] // one post can have many likes
   actionLogs ActionLog[]
 
   @@map("posts")
@@ -140,4 +142,14 @@ model ActionLog {
   like      PostLike? @relation(fields: [likeId], references: [id])
 
   @@map("action_logs")
+
+  }
+
+ model PostStatus {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+
+  posts  Post[]
+
+  @@map("post_statuses")
 }
