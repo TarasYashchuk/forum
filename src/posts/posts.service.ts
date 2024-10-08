@@ -301,4 +301,63 @@ export class PostService {
       throw error;
     }
   }
+
+  async changePostStatus(
+    postId: number,
+    statusName: string,
+    userId: number,
+    roleId: number,
+  ): Promise<PostDto> {
+    const statusId = await this.getStatusIdByName(statusName);
+
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        author: true,
+      },
+    });
+
+    if (!post) {
+      throw new NotFoundException(`Post with ID ${postId} not found`);
+    }
+
+    if (roleId !== 1 && post.authorId !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to change the status of this post',
+      );
+    }
+
+    const updatedPost = await this.prisma.post.update({
+      where: { id: postId },
+      data: { statusId },
+      include: {
+        author: true,
+        likes: { select: { userId: true } },
+        comments: {
+          include: {
+            user: { select: { id: true, username: true } },
+            likes: { select: { userId: true } },
+          },
+        },
+      },
+    });
+
+    this.logger.log(
+      `User with ID ${userId} changed status of post ${postId} to ${statusName}`,
+    );
+    return plainToInstance(PostDto, updatedPost, {
+      excludeExtraneousValues: true,
+    });
+  }
+  async getStatusIdByName(statusName: string): Promise<number> {
+    const status = await this.prisma.postStatus.findUnique({
+      where: { name: statusName },
+    });
+
+    if (!status) {
+      throw new BadRequestException(`Invalid status: ${statusName}`);
+    }
+
+    return status.id;
+  }
 }

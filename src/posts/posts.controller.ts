@@ -145,4 +145,16 @@ export class PostController {
     await this.postService.unlikePost(postId, userId);
     return { message: 'Post unliked successfully' };
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
+  @Patch(':id/status')
+  async changePostStatus(
+    @Param('id', ParseIntPipe) postId: number,
+    @Body('status') status: string,
+    @Req() req: RequestWithUser,
+  ): Promise<PostDto> {
+    const { id, roleId } = req.user;
+    return this.postService.changePostStatus(postId, status, id, roleId);
+  }
 }
