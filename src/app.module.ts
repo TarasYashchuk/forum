@@ -7,6 +7,12 @@ import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comment.module';
 import { FollowersModule } from './followers/followers.module';
 import { ImgurService } from './imgur/imgur.service';
+import { ImgurModule } from './imgur/imgur.module';
+import { StatisticsController } from './statistic/statistics.controller';
+import { StatisticsService } from './statistic/statistics.service';
+import { StatisticModule } from './statistic/statistic.module';
+import { WinstonLoggerService } from './logger/winston-logger.service';
+
 @Module({
   imports: [
     AuthModule,
@@ -16,8 +22,10 @@ import { ImgurService } from './imgur/imgur.service';
     PostsModule,
     CommentsModule,
     FollowersModule,
+    ImgurModule,
+    StatisticModule,
   ],
-  controllers: [],
-  providers: [ImgurService],
+  controllers: [StatisticsController],
+  providers: [ImgurService, StatisticsService, WinstonLoggerService],
 })
 export class AppModule {}

@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { WinstonLoggerService } from 'src/logger/winston-logger.service';
 
 @Injectable()
 export class MailService {
   private transporter: nodemailer.Transporter;
 
-  constructor() {
+  constructor(private readonly logger: WinstonLoggerService) {
     this.transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
@@ -27,10 +28,14 @@ export class MailService {
       html: `<p>You requested a password reset. Click this <a href="${resetUrl}">link</a> to reset your password.</p>`,
     };
 
-    const info = await this.transporter.sendMail(message);
-    console.log(
-      'Password reset email sent:',
-      nodemailer.getTestMessageUrl(info),
-    );
+    try {
+      const info = await this.transporter.sendMail(message);
+      this.logger.log(`Password reset email sent successfully to ${to}}`);
+    } catch (error) {
+      this.logger.error(
+        `Failed to send password reset email to ${to}: ${error.message}`,
+      );
+      throw new Error('Failed to send password reset email');
+    }
   }
 }
