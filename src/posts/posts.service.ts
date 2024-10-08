@@ -33,6 +33,7 @@ export class PostService {
           ...createPostDto,
           imageUrl,
           authorId: userId,
+          statusId: 1,
         },
       });
 
@@ -49,14 +50,17 @@ export class PostService {
     }
   }
 
-  async getPostById(id: number, userId: number): Promise<PostDto> {
+  async getPostById(
+    id: number,
+    userId: number,
+    roleId: number,
+  ): Promise<PostDto> {
     try {
       const post = await this.prisma.post.findUnique({
         where: { id },
         include: {
-          likes: {
-            select: { userId: true },
-          },
+          status: true,
+          likes: { select: { userId: true } },
           comments: {
             include: {
               user: { select: { id: true, username: true } },
@@ -71,14 +75,14 @@ export class PostService {
       }
 
       this.logger.log(
-        `User with id ${userId} retrieved post with id ${id} successfully`,
+        `Admin with id ${userId} retrieved post with id ${id} successfully`,
       );
       await this.logger.logAction('VIEW_POST', userId, id);
 
       return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
     } catch (error) {
       this.logger.error(
-        `Failed to retrieve post with id ${id} for user with id ${userId}: ${error.message}`,
+        `Failed to retrieve post with id ${id} for admin with id ${userId}: ${error.message}`,
       );
       throw error;
     }
@@ -157,11 +161,18 @@ export class PostService {
     }
   }
 
-  async getAllPosts(): Promise<PostDto[]> {
+  async getAllPosts(userId: number, roleId: number): Promise<PostDto[]> {
     try {
       const posts = await this.prisma.post.findMany({
+        where:
+          roleId === 1
+            ? {}
+            : {
+                OR: [{ authorId: userId }, { status: { name: 'active' } }],
+              },
         include: {
           author: true,
+          status: true,
           likes: { select: { userId: true } },
           comments: {
             include: {
@@ -180,12 +191,23 @@ export class PostService {
     }
   }
 
-  async getPostsByAuthor(authorId: number): Promise<PostDto[]> {
+  async getPostsByAuthor(
+    authorId: number,
+    userId: number,
+    roleId: number,
+  ): Promise<PostDto[]> {
     try {
       const posts = await this.prisma.post.findMany({
-        where: { authorId },
+        where:
+          roleId === 1
+            ? { authorId }
+            : {
+                authorId,
+                OR: [{ authorId: userId }, { status: { name: 'active' } }],
+              },
         include: {
           author: true,
+          status: true,
           likes: { select: { userId: true } },
           comments: {
             include: {

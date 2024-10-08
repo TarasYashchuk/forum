@@ -31,4 +31,9 @@ export class PostDto {
   @Expose()
   @Type(() => CommentDto)
   comments: CommentDto[];
+
+  @Expose()
+  status: {
+    name: string;
+  };
 }
