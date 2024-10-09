@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { PostDto } from './dto/post/post.dto';
 import { CreatePostDto } from './dto/post/create-post.dto';
@@ -65,7 +66,9 @@ export class PostController {
     @Req() req: RequestWithUser,
   ): Promise<PostDto> {
     const userId = req.user.id;
-    return this.postService.getPostById(id, userId);
+    const roleId = req.user.roleId;
+
+    return this.postService.getPostById(id, userId, roleId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -95,17 +98,26 @@ export class PostController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
   @Get()
-  async getAllPosts(): Promise<PostDto[]> {
-    return this.postService.getAllPosts();
+  async getAllPosts(@Req() req: RequestWithUser): Promise<PostDto[]> {
+    const { id, roleId } = req.user;
+    return this.postService.getAllPosts(id, roleId);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
   @Get('author/:authorId')
   async getPostsByAuthor(
-    @Param('authorId') authorId: string,
+    @Param('authorId', ParseIntPipe) authorId: number,
+    @Req() req: RequestWithUser,
   ): Promise<PostDto[]> {
-    const posts = await this.postService.getPostsByAuthor(Number(authorId));
+    const userId = req.user.id;
+    const roleId = req.user.roleId;
+
+    const posts = await this.postService.getPostsByAuthor(
+      authorId,
+      userId,
+      roleId,
+    );
     return posts.map((post) =>
       plainToInstance(PostDto, post, { excludeExtraneousValues: true }),
     );
@@ -133,5 +145,17 @@ export class PostController {
     const userId = req.user.id;
     await this.postService.unlikePost(postId, userId);
     return { message: 'Post unliked successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
+  @Patch(':id/status')
+  async changePostStatus(
+    @Param('id', ParseIntPipe) postId: number,
+    @Query('status') status: string,
+    @Req() req: RequestWithUser,
+  ): Promise<PostDto> {
+    const { id, roleId } = req.user;
+    return this.postService.changePostStatus(postId, status, id, roleId);
   }
 }

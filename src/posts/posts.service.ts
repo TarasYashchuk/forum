@@ -33,6 +33,7 @@ export class PostService {
           ...createPostDto,
           imageUrl,
           authorId: userId,
+          statusId: 1,
         },
       });
 
@@ -49,14 +50,17 @@ export class PostService {
     }
   }
 
-  async getPostById(id: number, userId: number): Promise<PostDto> {
+  async getPostById(
+    id: number,
+    userId: number,
+    roleId: number,
+  ): Promise<PostDto> {
     try {
       const post = await this.prisma.post.findUnique({
         where: { id },
         include: {
-          likes: {
-            select: { userId: true },
-          },
+          status: true,
+          likes: { select: { userId: true } },
           comments: {
             include: {
               user: { select: { id: true, username: true } },
@@ -71,14 +75,14 @@ export class PostService {
       }
 
       this.logger.log(
-        `User with id ${userId} retrieved post with id ${id} successfully`,
+        `Admin with id ${userId} retrieved post with id ${id} successfully`,
       );
       await this.logger.logAction('VIEW_POST', userId, id);
 
       return plainToInstance(PostDto, post, { excludeExtraneousValues: true });
     } catch (error) {
       this.logger.error(
-        `Failed to retrieve post with id ${id} for user with id ${userId}: ${error.message}`,
+        `Failed to retrieve post with id ${id} for admin with id ${userId}: ${error.message}`,
       );
       throw error;
     }
@@ -157,11 +161,18 @@ export class PostService {
     }
   }
 
-  async getAllPosts(): Promise<PostDto[]> {
+  async getAllPosts(userId: number, roleId: number): Promise<PostDto[]> {
     try {
       const posts = await this.prisma.post.findMany({
+        where:
+          roleId === 1
+            ? {}
+            : {
+                OR: [{ authorId: userId }, { status: { name: 'active' } }],
+              },
         include: {
           author: true,
+          status: true,
           likes: { select: { userId: true } },
           comments: {
             include: {
@@ -180,12 +191,23 @@ export class PostService {
     }
   }
 
-  async getPostsByAuthor(authorId: number): Promise<PostDto[]> {
+  async getPostsByAuthor(
+    authorId: number,
+    userId: number,
+    roleId: number,
+  ): Promise<PostDto[]> {
     try {
       const posts = await this.prisma.post.findMany({
-        where: { authorId },
+        where:
+          roleId === 1
+            ? { authorId }
+            : {
+                authorId,
+                OR: [{ authorId: userId }, { status: { name: 'active' } }],
+              },
         include: {
           author: true,
+          status: true,
           likes: { select: { userId: true } },
           comments: {
             include: {
@@ -278,5 +300,64 @@ export class PostService {
       );
       throw error;
     }
+  }
+
+  async changePostStatus(
+    postId: number,
+    statusName: string,
+    userId: number,
+    roleId: number,
+  ): Promise<PostDto> {
+    const statusId = await this.getStatusIdByName(statusName);
+
+    const post = await this.prisma.post.findUnique({
+      where: { id: postId },
+      include: {
+        author: true,
+      },
+    });
+
+    if (!post) {
+      throw new NotFoundException(`Post with ID ${postId} not found`);
+    }
+
+    if (roleId !== 1 && post.authorId !== userId) {
+      throw new ForbiddenException(
+        'You are not allowed to change the status of this post',
+      );
+    }
+
+    const updatedPost = await this.prisma.post.update({
+      where: { id: postId },
+      data: { statusId },
+      include: {
+        author: true,
+        likes: { select: { userId: true } },
+        comments: {
+          include: {
+            user: { select: { id: true, username: true } },
+            likes: { select: { userId: true } },
+          },
+        },
+      },
+    });
+
+    this.logger.log(
+      `User with ID ${userId} changed status of post ${postId} to ${statusName}`,
+    );
+    return plainToInstance(PostDto, updatedPost, {
+      excludeExtraneousValues: true,
+    });
+  }
+  async getStatusIdByName(statusName: string): Promise<number> {
+    const status = await this.prisma.postStatus.findUnique({
+      where: { name: statusName },
+    });
+
+    if (!status) {
+      throw new BadRequestException(`Invalid status: ${statusName}`);
+    }
+
+    return status.id;
   }
 }
