@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import * as winston from 'winston';
 
@@ -32,17 +32,32 @@ export class WinstonLoggerService {
     userId: number,
     postId?: number,
     commentId?: number,
+    targetId?: number,
   ) {
-    await this.prisma.actionLog.create({
-      data: {
-        action,
-        userId,
-        postId,
-        commentId,
-        createdAt: new Date(),
-      },
-    });
-    this.logger.info(`Action "${action}" logged for user with id ${userId}`);
+    try {
+      await this.prisma.actionLog.create({
+        data: {
+          action,
+          userId,
+          postId,
+          commentId,
+          targetId,
+          createdAt: new Date(),
+        },
+      });
+      this.logger.info(
+        `Action "${action}" logged for user with id ${userId}${
+          targetId ? ` targeting user with id ${targetId}` : ''
+        }`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to log action "${action}" for user with id ${userId}: ${error.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Failed to log action. Please try again later.',
+      );
+    }
   }
 
   log(message: string, context?: any) {

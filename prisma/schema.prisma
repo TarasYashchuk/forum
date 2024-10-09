@@ -36,6 +36,7 @@ model User {
   following    Follower[]    @relation("UserFollowing")
   resetTokens PasswordResetToken[]
   actionLogs ActionLog[]
+  actionTargets ActionLog[] @relation("ActionTarget")
 
   @@map("users")
 }
@@ -134,16 +135,17 @@ model ActionLog {
   postId    Int?
   commentId Int?
   likeId    Int?
+  targetId  Int?
   createdAt DateTime @default(now())
 
-  user      User    @relation(fields: [userId], references: [id])
-  post      Post?   @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post?    @relation(fields: [postId], references: [id])
   comment   Comment? @relation(fields: [commentId], references: [id])
   like      PostLike? @relation(fields: [likeId], references: [id])
+  target    User?     @relation("ActionTarget", fields: [targetId], references: [id])
 
   @@map("action_logs")
-
-  }
+}
 
  model PostStatus {
   id     Int    @id @default(autoincrement())

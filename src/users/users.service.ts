@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
@@ -282,7 +283,7 @@ export class UserService {
     }
   }
 
-  async getUserById(id: number): Promise<UserDto> {
+  async getUserById(id: number, userId: number): Promise<UserDto> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id },
@@ -312,6 +313,14 @@ export class UserService {
       }
 
       const userWithFollowers = mapFollowersAndFollowing(user);
+
+      await this.logger.logAction(
+        'VIEW_USER_PROFILE',
+        userId,
+        undefined,
+        undefined,
+        id,
+      );
 
       this.logger.log(`User with ID ${id} fetched successfully`);
       return plainToClass(UserDto, userWithFollowers, {
@@ -383,6 +392,59 @@ export class UserService {
     } catch (error) {
       this.logger.error(`Failed to create OAuth user: ${error.message}`);
       throw error;
+    }
+  }
+
+  async viewUserProfile(viewerId: number, profileId: number): Promise<UserDto> {
+    try {
+      const profile = await this.prisma.user.findUnique({
+        where: { id: profileId },
+        include: {
+          posts: {
+            include: {
+              comments: {
+                include: {
+                  user: { select: { id: true, username: true } },
+                  likes: { select: { userId: true } },
+                },
+              },
+              likes: { select: { userId: true } },
+            },
+          },
+          followedBy: {
+            include: { follower: { select: { id: true, username: true } } },
+          },
+          following: {
+            include: { following: { select: { id: true, username: true } } },
+          },
+        },
+      });
+
+      if (!profile) {
+        throw new NotFoundException(`User with ID ${profileId} not found`);
+      }
+
+      const profileWithFollowers = mapFollowersAndFollowing(profile);
+
+      await this.logger.logAction(
+        'VIEW_USER_PROFILE',
+        viewerId,
+        undefined,
+        undefined,
+        profileId,
+      );
+
+      this.logger.log(`User ${viewerId} viewed profile of user ${profileId}`);
+      return plainToClass(UserDto, profileWithFollowers, {
+        excludeExtraneousValues: true,
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch profile for user with ID ${profileId}: ${error.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Failed to fetch user profile information',
+      );
     }
   }
 }

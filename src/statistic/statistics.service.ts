@@ -14,20 +14,25 @@ export class StatisticsService {
     private readonly logger: WinstonLoggerService,
   ) {}
 
-  async getActionCountByType(action: string): Promise<number> {
+  async getActionCountByType(
+    action: string,
+    targetId?: number,
+  ): Promise<number> {
     try {
       const count = await this.prisma.actionLog.count({
         where: {
-          action: action,
+          action,
+          ...(targetId ? { targetId } : {}),
         },
       });
+
       this.logger.log(
-        `Successfully fetched action count for action type: ${action} - Count: ${count}`,
+        `Successfully fetched action count for action type: ${action}, targetId: ${targetId} - Count: ${count}`,
       );
       return count;
     } catch (error) {
       this.logger.error(
-        `Failed to fetch action count for action type: ${action} - ${error.message}`,
+        `Failed to fetch action count for action type: ${action}, targetId: ${targetId} - ${error.message}`,
       );
       throw new InternalServerErrorException('Failed to fetch action count');
     }
@@ -38,28 +43,35 @@ export class StatisticsService {
       const postCreatedCount = await this.prisma.actionLog.count({
         where: {
           action: 'CREATE_POST',
-          userId: userId,
+          userId,
         },
       });
 
       const postViewedCount = await this.prisma.actionLog.count({
         where: {
           action: 'VIEW_POST',
-          userId: userId,
+          userId,
         },
       });
 
       const commentCount = await this.prisma.actionLog.count({
         where: {
           action: 'CREATE_COMMENT',
-          userId: userId,
+          userId,
         },
       });
 
       const likeCount = await this.prisma.actionLog.count({
         where: {
           action: 'LIKE_POST',
-          userId: userId,
+          userId,
+        },
+      });
+
+      const profileViews = await this.prisma.actionLog.count({
+        where: {
+          action: 'VIEW_USER_PROFILE',
+          userId,
         },
       });
 
@@ -68,6 +80,7 @@ export class StatisticsService {
         postsViewed: postViewedCount,
         comments: commentCount,
         likes: likeCount,
+        profileViews,
       };
 
       this.logger.log(
@@ -90,12 +103,15 @@ export class StatisticsService {
       const totalPostsViewed = await this.getActionCountByType('VIEW_POST');
       const totalComments = await this.getActionCountByType('CREATE_COMMENT');
       const totalLikes = await this.getActionCountByType('LIKE_POST');
+      const totalProfileViews =
+        await this.getActionCountByType('VIEW_USER_PROFILE');
 
       const stats = {
         totalPostsCreated,
         totalPostsViewed,
         totalComments,
         totalLikes,
+        totalProfileViews,
       };
 
       this.logger.log(
@@ -117,7 +133,7 @@ export class StatisticsService {
     actions: string[],
     startDate: Date,
     endDate: Date,
-    interval: 'hour' | 'day' | 'week' | 'month',
+    interval: 'hour' | 'day' | 'week' | 'month' | 'year',
   ): Promise<any> {
     try {
       const intervalMap = {
@@ -125,6 +141,7 @@ export class StatisticsService {
         day: 'day',
         week: 'week',
         month: 'month',
+        year: 'year',
       };
 
       if (!intervalMap[interval]) {
@@ -145,6 +162,7 @@ export class StatisticsService {
                      'postId', "postId",
                      'commentId', "commentId",
                      'likeId', "likeId",
+                     'targetId', "targetId",
                      'createdAt', "createdAt"
                    )) as events
             FROM "action_logs"
@@ -156,6 +174,7 @@ export class StatisticsService {
           `;
         }),
       );
+
       const formattedStatistics = actions.map((action, index) => ({
         action,
         statistics: statistics[index].map((stat) => ({
