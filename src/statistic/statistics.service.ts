@@ -1,4 +1,9 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { WinstonLoggerService } from 'src/logger/winston-logger.service';
 import { PrismaService } from 'src/prisma.service';
 
@@ -103,6 +108,86 @@ export class StatisticsService {
       );
       throw new InternalServerErrorException(
         'Failed to fetch global action statistics',
+      );
+    }
+  }
+
+  async getStatisticsByPeriod(
+    userId: number | null,
+    actions: string[],
+    startDate: Date,
+    endDate: Date,
+    interval: 'hour' | 'day' | 'week' | 'month',
+  ): Promise<any> {
+    try {
+      const intervalMap = {
+        hour: 'hour',
+        day: 'day',
+        week: 'week',
+        month: 'month',
+      };
+
+      if (!intervalMap[interval]) {
+        throw new BadRequestException(`Invalid interval: ${interval}`);
+      }
+
+      const statistics = await Promise.all(
+        actions.map(async (action) => {
+          return await this.prisma.$queryRaw<
+            { period: Date; count: bigint; events: any[] }[]
+          >`
+            SELECT DATE_TRUNC(${intervalMap[interval]}, "createdAt") as period,
+                   COUNT(*) as count,
+                   ARRAY_AGG(JSON_BUILD_OBJECT(
+                     'id', "id",
+                     'action', "action",
+                     'userId', "userId",
+                     'postId', "postId",
+                     'commentId', "commentId",
+                     'likeId', "likeId",
+                     'createdAt', "createdAt"
+                   )) as events
+            FROM "action_logs"
+            WHERE "createdAt" BETWEEN ${startDate} AND ${endDate}
+              AND "action" = ${action}
+              ${userId ? Prisma.sql`AND "userId" = ${userId}` : Prisma.empty}
+            GROUP BY period
+            ORDER BY period;
+          `;
+        }),
+      );
+      const formattedStatistics = actions.map((action, index) => ({
+        action,
+        statistics: statistics[index].map((stat) => ({
+          period: new Date(stat.period).toISOString(),
+          count: Number(stat.count),
+          events: stat.events.map((event: any) => ({
+            ...event,
+            createdAt: new Date(
+              new Date(event.createdAt).getTime() + 3 * 60 * 60 * 1000,
+            ).toISOString(),
+          })),
+        })),
+      }));
+
+      this.logger.log(
+        `Successfully fetched combined statistics for actions "${actions.join(
+          ', ',
+        )}" from ${startDate.toISOString()} to ${endDate.toISOString()} grouped by ${interval}`,
+      );
+
+      return {
+        interval,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        combinedStatistics: formattedStatistics,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to fetch combined statistics for period: ${error.message}`,
+      );
+      throw new InternalServerErrorException(
+        'Failed to fetch combined statistics for the specified period',
       );
     }
   }
