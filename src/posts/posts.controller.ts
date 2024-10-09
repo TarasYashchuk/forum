@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Query,
 } from '@nestjs/common';
 import { PostDto } from './dto/post/post.dto';
 import { CreatePostDto } from './dto/post/create-post.dto';
@@ -151,7 +152,7 @@ export class PostController {
   @Patch(':id/status')
   async changePostStatus(
     @Param('id', ParseIntPipe) postId: number,
-    @Body('status') status: string,
+    @Query('status') status: string,
     @Req() req: RequestWithUser,
   ): Promise<PostDto> {
     const { id, roleId } = req.user;
