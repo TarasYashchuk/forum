@@ -13,6 +13,9 @@ import {
   UploadedFile,
   BadRequestException,
   Query,
+  DefaultValuePipe,
+  HttpStatus,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { PostDto } from './dto/post/post.dto';
 import { CreatePostDto } from './dto/post/create-post.dto';
@@ -25,7 +28,6 @@ import { RolesGuard } from 'src/auth/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { RequestWithUser } from 'src/common/request-with-user.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Multer } from 'multer';
 
 @Controller('posts')
 export class PostController {
@@ -98,9 +100,14 @@ export class PostController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
   @Get()
-  async getAllPosts(@Req() req: RequestWithUser): Promise<PostDto[]> {
+  async getAllPosts(
+    @Req() req: RequestWithUser,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ): Promise<{ posts: PostDto[]; total: number }> {
     const { id, roleId } = req.user;
-    return this.postService.getAllPosts(id, roleId);
+
+    return this.postService.getAllPosts(id, roleId, page, limit);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

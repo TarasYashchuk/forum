@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
@@ -161,30 +162,51 @@ export class PostService {
     }
   }
 
-  async getAllPosts(userId: number, roleId: number): Promise<PostDto[]> {
+  async getAllPosts(
+    userId: number,
+    roleId: number,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ posts: PostDto[]; total: number }> {
+    const skip = (page - 1) * limit;
+
     try {
-      const posts = await this.prisma.post.findMany({
-        where:
-          roleId === 1
-            ? {}
-            : {
-                OR: [{ authorId: userId }, { status: { name: 'active' } }],
+      const whereCondition =
+        roleId === 1
+          ? {}
+          : {
+              OR: [{ authorId: userId }, { status: { name: 'active' } }],
+            };
+
+      const [posts, total] = await this.prisma.$transaction([
+        this.prisma.post.findMany({
+          where: whereCondition,
+          include: {
+            author: true,
+            status: true,
+            likes: { select: { userId: true } },
+            comments: {
+              include: {
+                user: { select: { id: true, username: true } },
+                likes: { select: { userId: true } },
               },
-        include: {
-          author: true,
-          status: true,
-          likes: { select: { userId: true } },
-          comments: {
-            include: {
-              user: { select: { id: true, username: true } },
-              likes: { select: { userId: true } },
             },
           },
-        },
-      });
+          skip,
+          take: limit,
+        }),
+        this.prisma.post.count({
+          where: whereCondition,
+        }),
+      ]);
 
       this.logger.log(`'getAllPosts' executed successfully`);
-      return plainToInstance(PostDto, posts, { excludeExtraneousValues: true });
+      return {
+        posts: plainToInstance(PostDto, posts, {
+          excludeExtraneousValues: true,
+        }),
+        total,
+      };
     } catch (error) {
       this.logger.error(`Failed to get all posts: ${error.message}`);
       throw error;
