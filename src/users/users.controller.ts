@@ -6,6 +6,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
   Put,
@@ -66,9 +67,15 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2)
   @Get(':id')
-  @UsePipes(new ValidationPipe({ transform: true }))
-  async getUserById(@Param() params: UserIdDto): Promise<UserDto> {
-    return this.userService.getUserById(params.id);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1, 2)
+  @Get(':id')
+  async getUserById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: RequestWithUser,
+  ): Promise<UserDto> {
+    const userId = req.user.id;
+    return this.userService.getUserById(id, userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -111,6 +118,16 @@ export class UserController {
       throw new NotFoundException(`User with username ${username} not found`);
     }
     return user;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile/:id')
+  async viewUserProfile(
+    @Param('id', ParseIntPipe) profileId: number,
+    @Req() req: RequestWithUser,
+  ): Promise<UserDto> {
+    const viewerId = req.user.id;
+    return this.userService.viewUserProfile(viewerId, profileId);
   }
 
   @UseGuards(JwtAuthGuard)
